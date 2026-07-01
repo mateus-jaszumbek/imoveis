@@ -39,6 +39,14 @@ export async function proxy(request: NextRequest) {
     return supabaseResponse
   }
 
+  // Link de redefinição de senha vindo do e-mail do Supabase. Nesse momento
+  // ainda não existe sessão nos cookies (o token vem na URL e só é trocado
+  // por uma sessão no client, via JS) — não pode cair no "!user → /login"
+  // nem no redirecionamento de "rota pública com usuário já logado".
+  if (pathname === '/redefinir-senha') {
+    return supabaseResponse
+  }
+
   // Rotas públicas
   if (pathname === '/login' || pathname === '/esqueci-senha' || pathname === '/privacidade' || pathname === '/cadastro') {
     if (user) {
