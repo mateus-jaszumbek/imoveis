@@ -99,6 +99,13 @@ create table public.locacoes (
   atualizado_em timestamptz default now()
 );
 
+-- Um inquilino não pode ter duas locações ativas ao mesmo tempo — sem essa
+-- trava, a tela "Meu Imóvel" do cliente quebra silenciosamente (a consulta
+-- espera encontrar só uma locação ativa por inquilino).
+create unique index locacoes_inquilino_ativa_unica
+  on public.locacoes (inquilino_id)
+  where status = 'ativa';
+
 create table public.documentos (
   id uuid default uuid_generate_v4() primary key,
   locacao_id uuid references public.locacoes(id) on delete cascade not null,

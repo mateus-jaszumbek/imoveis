@@ -54,7 +54,13 @@ export function LocacaoForm({ imoveis, inquilinos }: Props) {
     // Atualiza status do imóvel para alugado
     if (!error) await supabase.from('imoveis').update({ status: 'alugado' }).eq('id', form.imovel_id)
     setLoading(false)
-    if (error) { toast('Erro: ' + error.message, 'error'); return }
+    if (error) {
+      const mensagem = error.code === '23505'
+        ? 'Este inquilino já possui uma locação ativa. Encerre a locação atual dele antes de criar uma nova.'
+        : 'Erro: ' + error.message
+      toast(mensagem, 'error')
+      return
+    }
     toast('Locação criada com sucesso!', 'success')
     router.push('/admin/locacoes')
     router.refresh()
