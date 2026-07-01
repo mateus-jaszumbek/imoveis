@@ -7,6 +7,33 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export interface EnderecoViaCep {
+  logradouro: string
+  bairro: string
+  localidade: string
+  uf: string
+}
+
+// Busca endereço a partir do CEP via ViaCEP (API pública, sem chave).
+// Retorna null se o CEP for inválido/incompleto ou não for encontrado.
+export async function buscarEnderecoPorCep(cep: string): Promise<EnderecoViaCep | null> {
+  const digitos = cep.replace(/\D/g, '')
+  if (digitos.length !== 8) return null
+  try {
+    const res = await fetch(`https://viacep.com.br/ws/${digitos}/json/`)
+    const data = await res.json()
+    if (!res.ok || data.erro) return null
+    return {
+      logradouro: data.logradouro ?? '',
+      bairro: data.bairro ?? '',
+      localidade: data.localidade ?? '',
+      uf: data.uf ?? '',
+    }
+  } catch {
+    return null
+  }
+}
+
 export function formatCurrency(value: number | null | undefined): string {
   if (value == null) return '—'
   return new Intl.NumberFormat('pt-BR', {

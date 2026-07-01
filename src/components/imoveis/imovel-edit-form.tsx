@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/components/ui/toast'
-import { parseMoeda } from '@/lib/utils'
+import { parseMoeda, buscarEnderecoPorCep } from '@/lib/utils'
 import type { Imovel } from '@/lib/types'
 
 const tipoOptions = [
@@ -28,6 +28,7 @@ export function ImovelEditForm({ imovel }: { imovel: Imovel }) {
   const supabase = createClient()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
+  const [buscandoCep, setBuscandoCep] = useState(false)
   const [form, setForm] = useState({
     codigo: imovel.codigo ?? '',
     tipo: imovel.tipo,
@@ -49,6 +50,15 @@ export function ImovelEditForm({ imovel }: { imovel: Imovel }) {
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setForm(prev => ({ ...prev, [field]: e.target.value }))
+
+  async function handleCepBlur() {
+    if (form.cep.replace(/\D/g, '').length !== 8) return
+    setBuscandoCep(true)
+    const endereco = await buscarEnderecoPorCep(form.cep)
+    setBuscandoCep(false)
+    if (!endereco) { toast('CEP não encontrado', 'error'); return }
+    setForm(prev => ({ ...prev, endereco: endereco.logradouro, bairro: endereco.bairro, cidade: endereco.localidade, uf: endereco.uf }))
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -90,7 +100,10 @@ export function ImovelEditForm({ imovel }: { imovel: Imovel }) {
         </div>
         <Input id="uf" label="UF *" value={form.uf} onChange={set('uf')} maxLength={2} required />
       </div>
-      <Input id="cep" label="CEP" value={form.cep} onChange={set('cep')} />
+      <div>
+        <Input id="cep" label="CEP" value={form.cep} onChange={set('cep')} onBlur={handleCepBlur} />
+        {buscandoCep && <p className="text-xs text-gray-400 mt-1">Buscando endereço...</p>}
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Input id="valor_aluguel" label="Aluguel (R$)" type="text" inputMode="decimal" value={form.valor_aluguel} onChange={set('valor_aluguel')} />
         <Input id="valor_condominio" label="Condomínio (R$)" type="text" inputMode="decimal" value={form.valor_condominio} onChange={set('valor_condominio')} />

@@ -8,7 +8,7 @@ import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent } from '@/components/ui/card'
 import { useToast } from '@/components/ui/toast'
-import { parseMoeda } from '@/lib/utils'
+import { parseMoeda, buscarEnderecoPorCep } from '@/lib/utils'
 import type { Imovel } from '@/lib/types'
 
 const tipoOptions = [
@@ -35,6 +35,7 @@ export function ImovelForm({ imovel, onSuccess }: ImovelFormProps) {
   const supabase = createClient()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
+  const [buscandoCep, setBuscandoCep] = useState(false)
   const [form, setForm] = useState({
     codigo: imovel?.codigo ?? '',
     tipo: imovel?.tipo ?? 'apartamento',
@@ -56,6 +57,15 @@ export function ImovelForm({ imovel, onSuccess }: ImovelFormProps) {
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setForm(prev => ({ ...prev, [field]: e.target.value }))
+
+  async function handleCepBlur() {
+    if (form.cep.replace(/\D/g, '').length !== 8) return
+    setBuscandoCep(true)
+    const endereco = await buscarEnderecoPorCep(form.cep)
+    setBuscandoCep(false)
+    if (!endereco) { toast('CEP não encontrado', 'error'); return }
+    setForm(prev => ({ ...prev, endereco: endereco.logradouro, bairro: endereco.bairro, cidade: endereco.localidade, uf: endereco.uf }))
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -87,6 +97,10 @@ export function ImovelForm({ imovel, onSuccess }: ImovelFormProps) {
             <Select id="tipo" label="Tipo *" options={tipoOptions} value={form.tipo} onChange={set('tipo')} />
             <Input id="codigo" label="Código" value={form.codigo} onChange={set('codigo')} placeholder="Ex: AP-001" />
           </div>
+          <div>
+            <Input id="cep" label="CEP" value={form.cep} onChange={set('cep')} onBlur={handleCepBlur} placeholder="00000-000" />
+            {buscandoCep && <p className="text-xs text-gray-400 mt-1">Buscando endereço...</p>}
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="sm:col-span-2">
               <Input id="endereco" label="Endereço *" value={form.endereco} onChange={set('endereco')} placeholder="Rua, Avenida..." required />
@@ -103,7 +117,6 @@ export function ImovelForm({ imovel, onSuccess }: ImovelFormProps) {
             </div>
             <Input id="uf" label="UF *" value={form.uf} onChange={set('uf')} maxLength={2} required />
           </div>
-          <Input id="cep" label="CEP" value={form.cep} onChange={set('cep')} placeholder="00000-000" />
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Input id="valor_aluguel" label="Aluguel (R$)" type="text" inputMode="decimal" placeholder="1500,00" value={form.valor_aluguel} onChange={set('valor_aluguel')} />
             <Input id="valor_condominio" label="Condomínio (R$)" type="text" inputMode="decimal" placeholder="0,00" value={form.valor_condominio} onChange={set('valor_condominio')} />
