@@ -217,6 +217,62 @@ Acesse: http://localhost:3000
 
 ---
 
+## Deploy no Vercel
+
+O Vercel roda só o Next.js — ele **não sobe o Docker/Supabase local**. Por isso
+você precisa de um Supabase de verdade na nuvem antes de configurar o Vercel.
+
+### 1. Criar o projeto no Supabase Cloud
+
+1. Acesse [supabase.com](https://supabase.com) → **New Project** (o plano gratuito já serve)
+2. Em **Settings → API**, anote:
+   - `Project URL` → vai virar `NEXT_PUBLIC_SUPABASE_URL`
+   - `anon public` key → vai virar `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `service_role` key (em **Settings → API → Project API keys**) → vai virar `SUPABASE_SERVICE_ROLE_KEY`
+3. **SQL Editor** → cole e execute todo o conteúdo de `supabase/schema.sql`
+4. **Storage** → **New bucket** → crie os 3 buckets:
+
+   | Bucket | Público? |
+   |--------|----------|
+   | `imovel-fotos` | ✅ Sim |
+   | `documentos` | ❌ Não |
+   | `chat-anexos` | ❌ Não |
+
+Não precisa criar o primeiro admin manualmente — depois do deploy, acesse
+`https://seu-projeto.vercel.app/cadastro` e crie sua conta de administrador
+por lá mesmo.
+
+### 2. Configurar as variáveis de ambiente no Vercel
+
+No painel do projeto no Vercel → **Settings → Environment Variables**, adicione
+(para os ambientes Production e Preview):
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+> **Não** configure `SUPABASE_INTERNAL_URL` no Vercel — essa variável é só para
+> quando o Next.js roda dentro do Docker e precisa falar com o Supabase pela
+> rede interna do container. No Vercel ela não existe e, se copiada por engano
+> do `.env`/`.env.docker`, faz o app tentar acessar uma URL interna do Docker
+> que não existe na internet — resultando em **erro 500 em toda página**
+> (o `proxy.ts` chama o Supabase a cada requisição).
+
+### 3. Redeploy
+
+Depois de salvar as variáveis, force um novo deploy (Vercel → Deployments →
+"..." → **Redeploy**) — variáveis de ambiente só entram em vigor em builds
+novos, não no deploy que já estava no ar.
+
+### 4. Testar
+
+Acesse `https://seu-projeto.vercel.app/cadastro`, crie sua locadora e comece a
+cadastrar imóveis e inquilinos normalmente.
+
+---
+
 ## Deploy no Hostinger (VPS com Docker)
 
 1. No seu VPS Hostinger, instale Docker e Docker Compose
