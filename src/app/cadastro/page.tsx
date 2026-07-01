@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 
 export default function CadastroPage() {
   const [form, setForm] = useState({ nome_locadora: '', nome: '', email: '', senha: '', confirmarSenha: '' })
+  const [aceite, setAceite] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
@@ -24,11 +25,15 @@ export default function CadastroPage() {
       setError('As senhas não coincidem.')
       return
     }
+    if (!aceite) {
+      setError('Você precisa confirmar ciência da Política de Privacidade para continuar.')
+      return
+    }
     setLoading(true)
     const res = await fetch('/api/cadastro-admin', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ ...form, aceite }),
     })
     const json = await res.json()
     if (!res.ok) {
@@ -63,6 +68,22 @@ export default function CadastroPage() {
             <Input id="email" label="E-mail" type="email" value={form.email} onChange={set('email')} placeholder="seu@email.com" required />
             <Input id="senha" label="Senha" type="password" value={form.senha} onChange={set('senha')} placeholder="Mínimo 6 caracteres" minLength={6} required />
             <Input id="confirmarSenha" label="Confirmar senha" type="password" value={form.confirmarSenha} onChange={set('confirmarSenha')} required />
+            <label className="flex items-start gap-2 text-xs text-gray-600">
+              <input
+                type="checkbox"
+                checked={aceite}
+                onChange={e => setAceite(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-gray-300"
+                required
+              />
+              <span>
+                Li e concordo com a{' '}
+                <Link href="/privacidade" target="_blank" className="text-blue-600 hover:underline">
+                  Política de Privacidade
+                </Link>{' '}
+                e o tratamento dos meus dados conforme a LGPD.
+              </span>
+            </label>
             {error && <p className="text-sm text-red-600">{error}</p>}
             <Button type="submit" loading={loading} className="w-full" size="lg">Criar conta</Button>
           </form>

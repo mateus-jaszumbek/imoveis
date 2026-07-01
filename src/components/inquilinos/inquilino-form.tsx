@@ -17,18 +17,20 @@ export function InquilinoForm() {
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({ nome: '', email: '', telefone: '', cpf: '', senha: '' })
+  const [aceite, setAceite] = useState(false)
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm(prev => ({ ...prev, [field]: e.target.value }))
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (!aceite) { toast('Confirme que o inquilino foi informado sobre o tratamento de dados (LGPD)', 'error'); return }
     setLoading(true)
     // A criação do usuário é feita no servidor com a service role key,
     // para não afetar a sessão do admin logado no navegador.
     const res = await fetch('/api/admin/criar-inquilino', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ ...form, aceite }),
     })
     const json = await res.json()
     setLoading(false)
@@ -72,6 +74,19 @@ export function InquilinoForm() {
               Compartilhe o e-mail e esta senha diretamente com o inquilino (WhatsApp, etc.) para ele acessar sua locação.
             </p>
           </div>
+          <label className="flex items-start gap-2 text-xs text-gray-600">
+            <input
+              type="checkbox"
+              checked={aceite}
+              onChange={e => setAceite(e.target.checked)}
+              className="mt-0.5 h-4 w-4 rounded border-gray-300"
+              required
+            />
+            <span>
+              Confirmo que tenho autorização para cadastrar estes dados e que o inquilino foi informado
+              sobre o tratamento de dados pessoais conforme a Política de Privacidade e a LGPD.
+            </span>
+          </label>
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="outline" onClick={() => router.back()}>Cancelar</Button>
             <Button type="submit" loading={loading}>Cadastrar Inquilino</Button>

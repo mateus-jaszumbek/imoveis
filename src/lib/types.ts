@@ -36,6 +36,7 @@ export type Database = {
           telefone: string | null
           cpf: string | null
           role: 'admin' | 'cliente'
+          consentimento_lgpd_em: string | null
           criado_em: string
           atualizado_em: string
         }
@@ -47,6 +48,7 @@ export type Database = {
           telefone?: string | null
           cpf?: string | null
           role: 'admin' | 'cliente'
+          consentimento_lgpd_em?: string | null
           criado_em?: string
           atualizado_em?: string
         }
@@ -58,6 +60,7 @@ export type Database = {
           telefone?: string | null
           cpf?: string | null
           role?: 'admin' | 'cliente'
+          consentimento_lgpd_em?: string | null
           criado_em?: string
           atualizado_em?: string
         }

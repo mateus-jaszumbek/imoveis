@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Building2, Receipt, FileText, MessageSquare, LogOut, ChevronRight } from 'lucide-react'
+import { Building2, Receipt, FileText, MessageSquare, LogOut, ChevronRight, Download } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -21,6 +21,52 @@ export function SidebarCliente({ nomeUsuario }: { nomeUsuario?: string }) {
   async function handleLogout() {
     await supabase.auth.signOut()
     router.push('/login')
+  }
+
+  // LGPD (direito de portabilidade): monta um arquivo com os dados que o
+  // próprio inquilino já enxerga no painel (perfil, locação, boletos,
+  // documentos) — tudo já filtrado pelo RLS, nenhuma rota nova necessária.
+  async function handleBaixarDados() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { data: perfil } = await supabase
+      .from('profiles')
+      .select('nome, email, telefone, cpf, criado_em')
+      .eq('id', user.id)
+      .single()
+
+    const { data: locacoes } = await supabase
+      .from('locacoes')
+      .select('id, data_inicio, data_fim, valor, dia_vencimento, status, imoveis(endereco, numero, bairro, cidade, uf)')
+      .eq('inquilino_id', user.id)
+
+    const locacaoAtivaId = locacoes?.find((l: any) => l.status === 'ativa')?.id ?? null
+
+    const [{ data: boletos }, { data: documentos }] = await Promise.all([
+      locacaoAtivaId
+        ? supabase.from('boletos').select('mes_referencia, vencimento, valor, status, pago_em').eq('locacao_id', locacaoAtivaId)
+        : Promise.resolve({ data: [] }),
+      locacaoAtivaId
+        ? supabase.from('documentos').select('nome_arquivo, tipo, criado_em').eq('locacao_id', locacaoAtivaId)
+        : Promise.resolve({ data: [] }),
+    ])
+
+    const dados = {
+      exportado_em: new Date().toISOString(),
+      perfil,
+      locacoes,
+      boletos,
+      documentos,
+    }
+
+    const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'meus-dados.json'
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   return (
@@ -61,7 +107,14 @@ export function SidebarCliente({ nomeUsuario }: { nomeUsuario?: string }) {
             })}
           </ul>
         </nav>
-        <div className="border-t border-gray-100 p-3">
+        <div className="border-t border-gray-100 p-3 space-y-0.5">
+          <button
+            onClick={handleBaixarDados}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+          >
+            <Download className="h-4 w-4" />
+            Baixar meus dados
+          </button>
           <button
             onClick={handleLogout}
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900"
@@ -78,13 +131,14 @@ export function SidebarCliente({ nomeUsuario }: { nomeUsuario?: string }) {
           <Building2 className="h-5 w-5 text-blue-600" />
           <span className="font-bold text-gray-900 text-sm">Locadora</span>
         </div>
-        <button
-          onClick={handleLogout}
-          aria-label="Sair"
-          className="flex items-center gap-1 text-xs font-medium text-gray-500"
-        >
-          <LogOut className="h-4 w-4" />
-        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={handleBaixarDados} aria-label="Baixar meus dados" className="text-gray-500">
+            <Download className="h-4 w-4" />
+          </button>
+          <button onClick={handleLogout} aria-label="Sair" className="text-gray-500">
+            <LogOut className="h-4 w-4" />
+          </button>
+        </div>
       </header>
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-10 flex border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)]">
         {links.map(({ href, label, icon: Icon }) => {

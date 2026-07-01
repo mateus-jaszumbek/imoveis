@@ -25,6 +25,7 @@ create table public.profiles (
   telefone text,
   cpf text,
   role text not null check (role in ('admin', 'cliente')),
+  consentimento_lgpd_em timestamptz,
   criado_em timestamptz default now(),
   atualizado_em timestamptz default now()
 );

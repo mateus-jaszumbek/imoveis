@@ -34,12 +34,15 @@ export async function POST(req: NextRequest) {
 
   // Usa service role para alterar e-mail/senha de login (a tabela profiles
   // sozinha não controla o login — quem faz isso é o auth.users do GoTrue).
+  // NÃO passa os cookies da sessão do admin — o createServerClient do
+  // @supabase/ssr rehidrata a sessão a partir do cookie e a usa como
+  // Authorization nas chamadas ao PostgREST, sobrepondo a service role key.
   const adminClient = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     {
       cookies: {
-        getAll: () => cookieStore.getAll(),
+        getAll: () => [],
         setAll: () => {},
       },
     }
