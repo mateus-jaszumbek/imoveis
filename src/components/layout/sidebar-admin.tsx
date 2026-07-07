@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   Building2, Users, FileText, Receipt, MessageSquare,
-  LayoutDashboard, LogOut, Home, ChevronRight, CalendarDays
+  LayoutDashboard, LogOut, Home, ChevronRight, CalendarDays, Settings
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -18,6 +18,7 @@ const links = [
   { href: '/admin/boletos', label: 'Boletos', icon: Receipt },
   { href: '/admin/documentos', label: 'Documentos', icon: FileText },
   { href: '/admin/mensagens', label: 'Mensagens', icon: MessageSquare },
+  { href: '/admin/configuracoes', label: 'Configurações', icon: Settings },
 ]
 
 export function SidebarAdmin() {

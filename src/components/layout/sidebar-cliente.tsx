@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Building2, Receipt, FileText, MessageSquare, LogOut, ChevronRight, Download } from 'lucide-react'
+import { Building2, Receipt, FileText, MessageSquare, LogOut, ChevronRight, Download, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -108,6 +108,13 @@ export function SidebarCliente({ nomeUsuario }: { nomeUsuario?: string }) {
           </ul>
         </nav>
         <div className="border-t border-gray-100 p-3 space-y-0.5">
+          <Link
+            href="/cliente/configuracoes"
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+          >
+            <Settings className="h-4 w-4" />
+            Configurações
+          </Link>
           <button
             onClick={handleBaixarDados}
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900"
@@ -132,6 +139,9 @@ export function SidebarCliente({ nomeUsuario }: { nomeUsuario?: string }) {
           <span className="font-bold text-gray-900 text-sm">Locadora</span>
         </div>
         <div className="flex items-center gap-3">
+          <Link href="/cliente/configuracoes" aria-label="Configurações" className="text-gray-500">
+            <Settings className="h-4 w-4" />
+          </Link>
           <button onClick={handleBaixarDados} aria-label="Baixar meus dados" className="text-gray-500">
             <Download className="h-4 w-4" />
           </button>
