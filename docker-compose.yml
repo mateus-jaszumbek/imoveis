@@ -190,8 +190,10 @@ services:
     restart: unless-stopped
     ports:
       - "8000:8000"
+    environment:
+      ANON_KEY: ${ANON_KEY}
     volumes:
-      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./docker/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
     depends_on:
       auth:
         condition: service_healthy
