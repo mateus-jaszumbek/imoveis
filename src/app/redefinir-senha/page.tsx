@@ -6,9 +6,15 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
+type Pendente =
+  | { tipo: 'token_hash'; tokenHash: string; recoveryType: string }
+  | { tipo: 'code'; code: string }
+
 export default function RedefinirSenhaPage() {
   const [pronto, setPronto] = useState(false)
   const [linkInvalido, setLinkInvalido] = useState(false)
+  const [pendente, setPendente] = useState<Pendente | null>(null)
+  const [confirmando, setConfirmando] = useState(false)
   const [senha, setSenha] = useState('')
   const [confirmarSenha, setConfirmarSenha] = useState('')
   const [loading, setLoading] = useState(false)
@@ -18,44 +24,63 @@ export default function RedefinirSenhaPage() {
   const supabase = createClient()
 
   useEffect(() => {
-    // Fluxo PKCE: o link do e-mail chega com "?code=..." na URL — precisa
-    // trocar esse código por uma sessão explicitamente. (O evento
-    // PASSWORD_RECOVERY do onAuthStateChange cobre o fluxo antigo com token
-    // no hash da URL; mantemos os dois como fallback um do outro.)
+    // Fluxo antigo (token no hash da URL): o supabase-js detecta e já
+    // estabelece a sessão sozinho ao carregar a página.
     const { data: listener } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') setPronto(true)
     })
 
-    async function validarLink() {
+    function validarLink() {
       // O Supabase pode devolver o erro direto na URL (link expirado/já usado)
       const params = new URLSearchParams(window.location.search || window.location.hash.replace('#', '?'))
-      if (params.get('error')) { setLinkInvalido(true); return }
+      if (params.get('error')) { setLinkInvalido(true); return true }
 
+      // Link com "?token_hash=..." (template de e-mail customizado) ou
+      // "?code=..." (fallback do link antigo, que passa pelo endpoint
+      // hospedado do Supabase). Em ambos os casos NÃO trocamos o token
+      // automaticamente ao carregar a página — só no clique do usuário em
+      // "Confirmar". Isso evita que scanners de e-mail/antivírus, que seguem
+      // o link sozinhos para verificá-lo, queimem o token de uso único antes
+      // do usuário clicar de verdade.
+      const tokenHash = params.get('token_hash')
+      if (tokenHash) {
+        setPendente({ tipo: 'token_hash', tokenHash, recoveryType: params.get('type') || 'recovery' })
+        return true
+      }
       const code = params.get('code')
       if (code) {
-        const { error } = await supabase.auth.exchangeCodeForSession(code)
-        if (!error) { setPronto(true); return }
-        setLinkInvalido(true)
-        return
+        setPendente({ tipo: 'code', code })
+        return true
       }
-      const { data } = await supabase.auth.getSession()
-      if (data.session) setPronto(true)
+      return false
     }
-    validarLink()
-
     // Se depois de alguns segundos nada validou, o link provavelmente expirou
     // ou já foi usado.
-    const timeout = setTimeout(() => {
-      supabase.auth.getSession().then(({ data }) => {
-        if (!data.session) setLinkInvalido(true)
-      })
-    }, 5000)
+    const timeout = validarLink()
+      ? undefined
+      : setTimeout(() => {
+          supabase.auth.getSession().then(({ data }) => {
+            if (!data.session) setLinkInvalido(true)
+          })
+        }, 5000)
 
     return () => {
       listener.subscription.unsubscribe()
-      clearTimeout(timeout)
+      if (timeout) clearTimeout(timeout)
     }
   }, [supabase])
+
+  async function confirmarLink() {
+    if (!pendente) return
+    setConfirmando(true)
+    const { error } =
+      pendente.tipo === 'token_hash'
+        ? await supabase.auth.verifyOtp({ token_hash: pendente.tokenHash, type: pendente.recoveryType as 'recovery' })
+        : await supabase.auth.exchangeCodeForSession(pendente.code)
+    setConfirmando(false)
+    if (error) { setLinkInvalido(true); return }
+    setPronto(true)
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -93,6 +118,11 @@ export default function RedefinirSenhaPage() {
                 Este link de redefinição é inválido ou já expirou.
               </p>
               <Button className="w-full" onClick={() => router.push('/login')}>Voltar ao login</Button>
+            </div>
+          ) : pendente ? (
+            <div className="text-center space-y-3">
+              <p className="text-sm text-gray-700">Clique para confirmar a redefinição da sua senha.</p>
+              <Button className="w-full" loading={confirmando} onClick={confirmarLink}>Confirmar redefinição</Button>
             </div>
           ) : !pronto ? (
             <p className="text-sm text-gray-500 text-center py-4">Verificando o link...</p>
