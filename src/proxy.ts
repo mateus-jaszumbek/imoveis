@@ -90,10 +90,13 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Verificar papel e rota
+  // Verificar papel e rota — consulta simples e isolada. Não junta com dados
+  // de assinatura aqui: se aquela consulta falhar ou vier vazia por qualquer
+  // motivo (cache de schema, coluna nova, instabilidade pontual), isso NÃO
+  // pode derrubar a decisão de papel e mandar um admin pro portal errado.
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, locadoras(assinatura_status, trial_termina_em)')
+    .select('role')
     .eq('id', user.id)
     .single()
 
@@ -104,14 +107,31 @@ export async function proxy(request: NextRequest) {
   // Bloqueia o painel admin (exceto a própria tela de assinatura) quando o
   // trial acabou sem assinatura ativa, ou a assinatura está atrasada/cancelada.
   // Só afeta /admin — o portal do inquilino/proprietário continua acessível.
-  if (pathname.startsWith('/admin') && pathname !== '/admin/assinatura') {
-    const locadora = profile?.locadoras as unknown as { assinatura_status: string; trial_termina_em: string } | null
-    const trialVencido = locadora?.trial_termina_em ? new Date(locadora.trial_termina_em) < new Date() : false
-    const bloqueado = locadora?.assinatura_status === 'atrasada'
-      || locadora?.assinatura_status === 'cancelada'
-      || (locadora?.assinatura_status === 'trial' && trialVencido)
-    if (bloqueado) {
-      return NextResponse.redirect(new URL('/admin/assinatura', request.url))
+  // Consulta separada e "fail-open": qualquer erro aqui não bloqueia o admin
+  // nem afeta a checagem de papel acima — na dúvida, libera o acesso.
+  if (pathname.startsWith('/admin') && profile?.role === 'admin' && pathname !== '/admin/assinatura') {
+    const { data: profileComLocadora } = await supabase
+      .from('profiles')
+      .select('locadora_id')
+      .eq('id', user.id)
+      .single()
+
+    const { data: locadora } = profileComLocadora?.locadora_id
+      ? await supabase
+          .from('locadoras')
+          .select('assinatura_status, trial_termina_em')
+          .eq('id', profileComLocadora.locadora_id)
+          .maybeSingle()
+      : { data: null }
+
+    if (locadora) {
+      const trialVencido = new Date(locadora.trial_termina_em) < new Date()
+      const bloqueado = locadora.assinatura_status === 'atrasada'
+        || locadora.assinatura_status === 'cancelada'
+        || (locadora.assinatura_status === 'trial' && trialVencido)
+      if (bloqueado) {
+        return NextResponse.redirect(new URL('/admin/assinatura', request.url))
+      }
     }
   }
 
