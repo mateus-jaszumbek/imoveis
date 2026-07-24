@@ -23,14 +23,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Informe o CPF ou CNPJ para gerar a cobrança' }, { status: 400 })
   }
 
-  const { data: locadora, error: locadoraError } = await supabase.from('locadoras').select('*').eq('id', profile.locadora_id).single()
-  if (!locadora) {
-    return NextResponse.json({
-      error: 'Locadora não encontrada',
-      debug: locadoraError ? { message: locadoraError.message, code: locadoraError.code, details: locadoraError.details, hint: locadoraError.hint } : null,
-      locadora_id_buscado: profile.locadora_id,
-    }, { status: 404 })
-  }
+  const { data: locadora } = await supabase.from('locadoras').select('*').eq('id', profile.locadora_id).single()
+  if (!locadora) return NextResponse.json({ error: 'Locadora não encontrada' }, { status: 404 })
 
   try {
     if (cpfCnpj && !profile.cpf) {
