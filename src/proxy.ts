@@ -7,6 +7,17 @@ function destinoPorPapel(role: string | undefined): string {
   return '/cliente/meu-imovel'
 }
 
+// Nunca redireciona para a própria rota atual — se o papel não puder ser
+// determinado (perfil não encontrado, consulta falhou, etc.), o destino por
+// papel pode coincidir com a rota que já bloqueou o acesso, causando um loop
+// infinito de redirecionamento. Nesse caso, deixa passar em vez de travar o
+// site inteiro (a proteção real dos dados continua sendo o RLS do banco).
+function redirecionarParaPapelOu(request: NextRequest, pathname: string, role: string | undefined, resposta: NextResponse): NextResponse {
+  const dest = destinoPorPapel(role)
+  if (dest === pathname) return resposta
+  return NextResponse.redirect(new URL(dest, request.url))
+}
+
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
@@ -69,7 +80,7 @@ export async function proxy(request: NextRequest) {
         .eq('id', user.id)
         .single()
 
-      return NextResponse.redirect(new URL(destinoPorPapel(profile?.role), request.url))
+      return redirecionarParaPapelOu(request, pathname, profile?.role, supabaseResponse)
     }
     return supabaseResponse
   }
@@ -87,7 +98,7 @@ export async function proxy(request: NextRequest) {
     .single()
 
   if (pathname.startsWith('/admin') && profile?.role !== 'admin') {
-    return NextResponse.redirect(new URL(destinoPorPapel(profile?.role), request.url))
+    return redirecionarParaPapelOu(request, pathname, profile?.role, supabaseResponse)
   }
 
   // Bloqueia o painel admin (exceto a própria tela de assinatura) quando o
@@ -105,11 +116,11 @@ export async function proxy(request: NextRequest) {
   }
 
   if (pathname.startsWith('/cliente') && profile?.role !== 'cliente') {
-    return NextResponse.redirect(new URL(destinoPorPapel(profile?.role), request.url))
+    return redirecionarParaPapelOu(request, pathname, profile?.role, supabaseResponse)
   }
 
   if (pathname.startsWith('/proprietario') && profile?.role !== 'proprietario') {
-    return NextResponse.redirect(new URL(destinoPorPapel(profile?.role), request.url))
+    return redirecionarParaPapelOu(request, pathname, profile?.role, supabaseResponse)
   }
 
   return supabaseResponse
