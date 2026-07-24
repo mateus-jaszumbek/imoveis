@@ -300,6 +300,44 @@ export type Database = {
           { foreignKeyName: 'boletos_locacao_id_fkey'; columns: ['locacao_id']; referencedRelation: 'locacoes'; referencedColumns: ['id'] }
         ]
       }
+      despesas: {
+        Row: {
+          id: string
+          locadora_id: string
+          imovel_id: string | null
+          categoria: 'manutencao' | 'comissao' | 'imposto' | 'seguro' | 'administracao' | 'marketing' | 'outro'
+          descricao: string | null
+          valor: number
+          data: string
+          criado_em: string
+          atualizado_em: string
+        }
+        Insert: {
+          id?: string
+          locadora_id?: string
+          imovel_id?: string | null
+          categoria: 'manutencao' | 'comissao' | 'imposto' | 'seguro' | 'administracao' | 'marketing' | 'outro'
+          descricao?: string | null
+          valor: number
+          data: string
+          criado_em?: string
+          atualizado_em?: string
+        }
+        Update: {
+          id?: string
+          locadora_id?: string
+          imovel_id?: string | null
+          categoria?: 'manutencao' | 'comissao' | 'imposto' | 'seguro' | 'administracao' | 'marketing' | 'outro'
+          descricao?: string | null
+          valor?: number
+          data?: string
+          criado_em?: string
+          atualizado_em?: string
+        }
+        Relationships: [
+          { foreignKeyName: 'despesas_imovel_id_fkey'; columns: ['imovel_id']; referencedRelation: 'imoveis'; referencedColumns: ['id'] }
+        ]
+      }
       conversas: {
         Row: {
           id: string
@@ -452,6 +490,7 @@ export type ImovelFoto = Database['public']['Tables']['imovel_fotos']['Row']
 export type Locacao = Database['public']['Tables']['locacoes']['Row']
 export type Documento = Database['public']['Tables']['documentos']['Row']
 export type Boleto = Database['public']['Tables']['boletos']['Row']
+export type Despesa = Database['public']['Tables']['despesas']['Row']
 export type Conversa = Database['public']['Tables']['conversas']['Row']
 export type Mensagem = Database['public']['Tables']['mensagens']['Row']
 export type MensagemAnexo = Database['public']['Tables']['mensagem_anexos']['Row']

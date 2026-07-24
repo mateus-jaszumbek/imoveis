@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   Building2, Users, FileText, Receipt, MessageSquare,
-  LayoutDashboard, LogOut, Home, ChevronRight, CalendarDays, Settings
+  LayoutDashboard, LogOut, Home, ChevronRight, CalendarDays, Settings, DollarSign
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation'
 
 const links = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/financeiro', label: 'Financeiro', icon: DollarSign },
   { href: '/admin/imoveis', label: 'Imóveis', icon: Building2 },
   { href: '/admin/inquilinos', label: 'Inquilinos', icon: Users },
   { href: '/admin/locacoes', label: 'Locações', icon: Home },

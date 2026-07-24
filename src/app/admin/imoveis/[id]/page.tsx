@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ImovelEditForm } from '@/components/imoveis/imovel-edit-form'
 import { FotoUpload } from '@/components/imoveis/foto-upload'
+import { DespesasImovel } from '@/components/imoveis/despesas-imovel'
 import { formatCurrency, statusImovelLabel, statusImovelColor, tipoImovelLabel } from '@/lib/utils'
 import { MapPin, Home, Square } from 'lucide-react'
 
@@ -56,6 +57,8 @@ export default async function ImovelDetailPage({ params }: { params: Promise<{ i
               <ImovelEditForm imovel={imovel} />
             </CardContent>
           </Card>
+
+          <DespesasImovel imovelId={imovel.id} />
         </div>
 
         <div className="space-y-6">

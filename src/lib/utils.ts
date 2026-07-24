@@ -169,6 +169,19 @@ export function tipoImovelLabel(tipo: string) {
   return labels[tipo] ?? tipo
 }
 
+export function categoriaDespesaLabel(categoria: string): string {
+  const labels: Record<string, string> = {
+    manutencao: 'Manutenção',
+    comissao: 'Comissão',
+    imposto: 'Imposto',
+    seguro: 'Seguro',
+    administracao: 'Administração',
+    marketing: 'Marketing',
+    outro: 'Outro',
+  }
+  return labels[categoria] ?? categoria
+}
+
 export function formatFileSize(bytes: number | null | undefined): string {
   if (!bytes) return ''
   if (bytes < 1024) return `${bytes} B`

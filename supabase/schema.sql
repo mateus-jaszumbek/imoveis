@@ -132,6 +132,18 @@ create table public.boletos (
   atualizado_em timestamptz default now()
 );
 
+create table public.despesas (
+  id uuid default uuid_generate_v4() primary key,
+  locadora_id uuid references public.locadoras(id) not null default public.minha_locadora(),
+  imovel_id uuid references public.imoveis(id),
+  categoria text not null check (categoria in ('manutencao', 'comissao', 'imposto', 'seguro', 'administracao', 'marketing', 'outro')),
+  descricao text,
+  valor numeric(10,2) not null,
+  data date not null,
+  criado_em timestamptz default now(),
+  atualizado_em timestamptz default now()
+);
+
 create table public.conversas (
   id uuid default uuid_generate_v4() primary key,
   locacao_id uuid references public.locacoes(id) on delete cascade not null unique,
@@ -181,6 +193,8 @@ create table public.agendamentos (
 create index on public.locacoes(inquilino_id);
 create index on public.locacoes(imovel_id);
 create index on public.boletos(locacao_id);
+create index on public.despesas(imovel_id);
+create index on public.despesas(data);
 create index on public.documentos(locacao_id);
 create index on public.mensagens(conversa_id);
 create index on public.mensagens(criado_em);
@@ -203,6 +217,7 @@ create trigger set_updated_at_profiles before update on public.profiles for each
 create trigger set_updated_at_imoveis before update on public.imoveis for each row execute procedure public.handle_updated_at();
 create trigger set_updated_at_locacoes before update on public.locacoes for each row execute procedure public.handle_updated_at();
 create trigger set_updated_at_boletos before update on public.boletos for each row execute procedure public.handle_updated_at();
+create trigger set_updated_at_despesas before update on public.despesas for each row execute procedure public.handle_updated_at();
 create trigger set_updated_at_agendamentos before update on public.agendamentos for each row execute procedure public.handle_updated_at();
 
 create or replace function public.handle_new_user()
@@ -243,6 +258,7 @@ alter table public.imovel_fotos enable row level security;
 alter table public.locacoes enable row level security;
 alter table public.documentos enable row level security;
 alter table public.boletos enable row level security;
+alter table public.despesas enable row level security;
 alter table public.conversas enable row level security;
 alter table public.mensagens enable row level security;
 alter table public.mensagem_anexos enable row level security;
@@ -291,6 +307,10 @@ create policy "admin gerencia boletos da sua locadora" on public.boletos for all
 create policy "cliente vê boletos da própria locação" on public.boletos for select using (
   locacao_id in (select id from public.locacoes where inquilino_id = auth.uid())
 );
+
+-- DESPESAS (só admin — inquilino não tem acesso a custos da locadora)
+create policy "admin gerencia despesas da sua locadora" on public.despesas for all
+  using (public.is_admin_da(locadora_id)) with check (public.is_admin_da(locadora_id));
 
 -- CONVERSAS
 create policy "admin gerencia conversas da sua locadora" on public.conversas for all
