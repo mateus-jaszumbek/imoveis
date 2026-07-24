@@ -292,6 +292,7 @@ $$ language sql security definer stable;
 
 -- ROW LEVEL SECURITY
 
+alter table public.locadoras enable row level security;
 alter table public.profiles enable row level security;
 alter table public.imoveis enable row level security;
 alter table public.imovel_fotos enable row level security;
@@ -304,6 +305,17 @@ alter table public.conversas enable row level security;
 alter table public.mensagens enable row level security;
 alter table public.mensagem_anexos enable row level security;
 alter table public.agendamentos enable row level security;
+
+-- LOCADORAS (qualquer usuário lê a própria; só o admin dela atualiza —
+-- ex: status de assinatura, id de cliente/assinatura no Asaas)
+create policy "usuário vê a própria locadora" on public.locadoras for select using (
+  id = public.minha_locadora()
+);
+create policy "admin atualiza a própria locadora" on public.locadoras for update using (
+  public.is_admin_da(id)
+) with check (
+  public.is_admin_da(id)
+);
 
 -- PROFILES (admin só vê/gerencia perfis da própria locadora)
 create policy "admin vê perfis da sua locadora" on public.profiles for select using (locadora_id = public.minha_locadora());
