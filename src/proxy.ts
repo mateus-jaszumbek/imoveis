@@ -1,6 +1,12 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+function destinoPorPapel(role: string | undefined): string {
+  if (role === 'admin') return '/admin/dashboard'
+  if (role === 'proprietario') return '/proprietario/meus-imoveis'
+  return '/cliente/meu-imovel'
+}
+
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
@@ -47,8 +53,8 @@ export async function proxy(request: NextRequest) {
     return supabaseResponse
   }
 
-  // Rotas públicas
-  if (pathname === '/login' || pathname === '/esqueci-senha' || pathname === '/privacidade' || pathname === '/cadastro') {
+  // Rotas públicas (inclui "/", que agora é a landing page comercial)
+  if (pathname === '/' || pathname === '/login' || pathname === '/esqueci-senha' || pathname === '/privacidade' || pathname === '/cadastro') {
     if (user) {
       // Usuário logado tentando acessar login → redireciona
       const { data: profile } = await supabase
@@ -57,8 +63,7 @@ export async function proxy(request: NextRequest) {
         .eq('id', user.id)
         .single()
 
-      const dest = profile?.role === 'admin' ? '/admin/dashboard' : '/cliente/meu-imovel'
-      return NextResponse.redirect(new URL(dest, request.url))
+      return NextResponse.redirect(new URL(destinoPorPapel(profile?.role), request.url))
     }
     return supabaseResponse
   }
@@ -76,17 +81,15 @@ export async function proxy(request: NextRequest) {
     .single()
 
   if (pathname.startsWith('/admin') && profile?.role !== 'admin') {
-    return NextResponse.redirect(new URL('/cliente/meu-imovel', request.url))
+    return NextResponse.redirect(new URL(destinoPorPapel(profile?.role), request.url))
   }
 
-  if (pathname.startsWith('/cliente') && profile?.role === 'admin') {
-    return NextResponse.redirect(new URL('/admin/dashboard', request.url))
+  if (pathname.startsWith('/cliente') && profile?.role !== 'cliente') {
+    return NextResponse.redirect(new URL(destinoPorPapel(profile?.role), request.url))
   }
 
-  // Rota raiz
-  if (pathname === '/') {
-    const dest = profile?.role === 'admin' ? '/admin/dashboard' : '/cliente/meu-imovel'
-    return NextResponse.redirect(new URL(dest, request.url))
+  if (pathname.startsWith('/proprietario') && profile?.role !== 'proprietario') {
+    return NextResponse.redirect(new URL(destinoPorPapel(profile?.role), request.url))
   }
 
   return supabaseResponse
