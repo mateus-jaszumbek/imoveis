@@ -10,18 +10,27 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role, locadoras(assinatura_status, trial_termina_em)')
-    .eq('id', user.id)
-    .single()
-
   // O papel já foi validado pelo proxy (src/proxy.ts) antes de qualquer
   // requisição chegar aqui — não repetir esse redirecionamento aqui. Duas
   // fontes de verdade independentes (proxy + layout) que às vezes discordam
   // (ex: cookie de sessão instável) já causou loop de redirecionamento em
   // produção (admin ↔ cliente ping-pong).
-  const locadora = profile?.locadoras as unknown as { assinatura_status: string; trial_termina_em: string } | null
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('locadora_id')
+    .eq('id', user.id)
+    .single()
+
+  // Consulta separada e opcional — se falhar, só o banner de trial some, o
+  // resto do painel continua funcionando normalmente.
+  const { data: locadora } = profile?.locadora_id
+    ? await supabase
+        .from('locadoras')
+        .select('assinatura_status, trial_termina_em')
+        .eq('id', profile.locadora_id)
+        .maybeSingle()
+    : { data: null }
+
   const diasRestantes = locadora ? diasAte(locadora.trial_termina_em) : 0
   const emTrial = locadora?.assinatura_status === 'trial' && diasRestantes >= 0
 

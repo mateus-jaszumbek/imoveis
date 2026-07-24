@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { AssinarButton } from '@/components/assinatura/assinar-button'
 import { formatCurrency, formatDate, diasAte } from '@/lib/utils'
-import { CheckCircle2, Clock, AlertTriangle, XCircle } from 'lucide-react'
+import { CheckCircle2, Clock, AlertTriangle, XCircle, HelpCircle } from 'lucide-react'
 
 export default async function AssinaturaPage() {
   const supabase = await createClient()
@@ -10,12 +10,23 @@ export default async function AssinaturaPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('cpf, locadoras(nome, assinatura_status, trial_termina_em)')
+    .select('cpf, locadora_id')
     .eq('id', user!.id)
     .single()
 
-  const locadora = profile?.locadoras as unknown as { nome: string; assinatura_status: string; trial_termina_em: string } | null
-  const status = locadora?.assinatura_status ?? 'trial'
+  // Consulta separada da tabela locadoras — se falhar por qualquer motivo
+  // (cache de schema desatualizado, instabilidade pontual), mostramos um
+  // estado "não foi possível carregar" em vez de quebrar a página ou supor
+  // um status que pode não ser real.
+  const { data: locadora } = profile?.locadora_id
+    ? await supabase
+        .from('locadoras')
+        .select('assinatura_status, trial_termina_em')
+        .eq('id', profile.locadora_id)
+        .maybeSingle()
+    : { data: null }
+
+  const status = locadora?.assinatura_status
   const diasRestantes = locadora ? diasAte(locadora.trial_termina_em) : 0
   const trialAtivo = status === 'trial' && diasRestantes >= 0
   const trialVencido = status === 'trial' && diasRestantes < 0
@@ -41,7 +52,21 @@ export default async function AssinaturaPage() {
         </CardContent>
       </Card>
 
-      {trialAtivo && (
+      {!locadora && (
+        <Card className="mb-6">
+          <CardContent className="flex items-center gap-4 py-5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 text-gray-500 shrink-0">
+              <HelpCircle className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="font-semibold text-gray-900">Não foi possível carregar o status da assinatura agora</p>
+              <p className="text-sm text-gray-500">Atualize a página em instantes. Se persistir, fale com o suporte.</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {trialAtivo && locadora && (
         <Card className="mb-6">
           <CardContent className="flex items-center gap-4 py-5">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600 shrink-0">
@@ -51,7 +76,7 @@ export default async function AssinaturaPage() {
               <p className="font-semibold text-gray-900">
                 Teste grátis — {diasRestantes === 0 ? 'termina hoje' : diasRestantes === 1 ? 'termina em 1 dia' : `termina em ${diasRestantes} dias`}
               </p>
-              <p className="text-sm text-gray-500">Depois de {formatDate(locadora!.trial_termina_em)}, é necessário assinar para continuar usando o painel.</p>
+              <p className="text-sm text-gray-500">Depois de {formatDate(locadora.trial_termina_em)}, é necessário assinar para continuar usando o painel.</p>
             </div>
           </CardContent>
         </Card>
