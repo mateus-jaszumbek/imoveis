@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { SidebarCliente } from '@/components/layout/sidebar-cliente'
+import { SidebarProprietario } from '@/components/layout/sidebar-proprietario'
 
-export default async function ClienteLayout({ children }: { children: React.ReactNode }) {
+export default async function ProprietarioLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -14,13 +14,13 @@ export default async function ClienteLayout({ children }: { children: React.Reac
     .single()
 
   if (profile?.role === 'admin') redirect('/admin/dashboard')
-  if (profile?.role === 'proprietario') redirect('/proprietario/meus-imoveis')
+  if (profile?.role === 'cliente') redirect('/cliente/meu-imovel')
 
   return (
     <div className="flex flex-col md:flex-row h-screen overflow-hidden">
-      <SidebarCliente nomeUsuario={profile?.nome} />
+      <SidebarProprietario nomeUsuario={profile?.nome} />
       <main className="flex-1 overflow-y-auto bg-gray-50">
-        <div className="p-4 pb-20 md:p-6 md:pb-6 max-w-3xl mx-auto">
+        <div className="p-4 pb-20 md:p-6 md:pb-6 max-w-5xl mx-auto">
           {children}
         </div>
       </main>

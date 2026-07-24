@@ -24,12 +24,12 @@ export default async function FinanceiroPage() {
   const [{ data: boletosPagos }, { data: despesas }, { data: boletosMesAtual }] = await Promise.all([
     supabase
       .from('boletos')
-      .select('id, valor, pago_em, locacoes(imoveis(id, codigo, endereco, tipo, bairro, cidade, uf))')
+      .select('id, valor, pago_em, locacoes(imoveis(id, codigo, endereco, tipo, bairro, cidade, uf, proprietario_id, taxa_administracao_pct))')
       .eq('status', 'pago')
       .gte('pago_em', cutoff),
     supabase
       .from('despesas')
-      .select('id, valor, data, imovel_id, imoveis(id, codigo, endereco, tipo, bairro, cidade, uf)')
+      .select('id, valor, data, imovel_id, imoveis(id, codigo, endereco, tipo, bairro, cidade, uf, proprietario_id, taxa_administracao_pct)')
       .gte('data', cutoff),
     supabase
       .from('boletos')
@@ -56,7 +56,10 @@ export default async function FinanceiroPage() {
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Financeiro</h1>
-        <p className="mt-1 text-sm text-gray-500">Faturamento, despesas e retorno por imóvel, tipo e região</p>
+        <p className="mt-1 text-sm text-gray-500">
+          Faturamento, despesas e retorno por imóvel, tipo e região. Para imóveis de terceiros, o resultado
+          da imobiliária considera só a comissão de administração — o restante é repassado ao proprietário.
+        </p>
       </div>
 
       <KpiCards

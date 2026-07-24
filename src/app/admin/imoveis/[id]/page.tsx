@@ -28,6 +28,12 @@ export default async function ImovelDetailPage({ params }: { params: Promise<{ i
     .eq('imovel_id', id)
     .eq('status', 'ativa')
 
+  const { data: proprietarios } = await supabase
+    .from('profiles')
+    .select('id, nome')
+    .eq('role', 'proprietario')
+    .order('nome')
+
   return (
     <div>
       <div className="mb-6">
@@ -54,7 +60,7 @@ export default async function ImovelDetailPage({ params }: { params: Promise<{ i
           <Card>
             <CardHeader><CardTitle>Editar Imóvel</CardTitle></CardHeader>
             <CardContent>
-              <ImovelEditForm imovel={imovel} />
+              <ImovelEditForm imovel={imovel} proprietarios={proprietarios ?? []} />
             </CardContent>
           </Card>
 

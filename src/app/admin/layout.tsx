@@ -13,6 +13,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     .eq('id', user.id)
     .single()
 
+  if (profile?.role === 'proprietario') redirect('/proprietario/meus-imoveis')
   if (profile?.role !== 'admin') redirect('/cliente/meu-imovel')
 
   return (

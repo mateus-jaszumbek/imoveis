@@ -23,7 +23,7 @@ const statusOptions = [
   { value: 'alugado', label: 'Alugado' },
 ]
 
-export function ImovelEditForm({ imovel }: { imovel: Imovel }) {
+export function ImovelEditForm({ imovel, proprietarios = [] }: { imovel: Imovel; proprietarios?: { id: string; nome: string }[] }) {
   const router = useRouter()
   const supabase = createClient()
   const { toast } = useToast()
@@ -46,6 +46,8 @@ export function ImovelEditForm({ imovel }: { imovel: Imovel }) {
     area: imovel.area?.toString() ?? '',
     descricao: imovel.descricao ?? '',
     status: imovel.status,
+    proprietario_id: imovel.proprietario_id ?? '',
+    taxa_administracao_pct: imovel.taxa_administracao_pct?.toString() ?? '10',
   })
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
@@ -70,6 +72,8 @@ export function ImovelEditForm({ imovel }: { imovel: Imovel }) {
       valor_iptu: parseMoeda(form.valor_iptu),
       quartos: form.quartos ? parseInt(form.quartos) : null,
       area: parseMoeda(form.area),
+      proprietario_id: form.proprietario_id || null,
+      taxa_administracao_pct: form.proprietario_id ? (parseMoeda(form.taxa_administracao_pct) ?? 10) : 0,
     }
     const { error } = await supabase.from('imoveis').update(payload).eq('id', imovel.id)
     setLoading(false)
@@ -115,6 +119,30 @@ export function ImovelEditForm({ imovel }: { imovel: Imovel }) {
         <Select id="status" label="Status" options={statusOptions} value={form.status} onChange={set('status')} />
       </div>
       <Textarea id="descricao" label="Descrição" value={form.descricao} onChange={set('descricao')} rows={3} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-lg border border-gray-200 p-4">
+        <div className="sm:col-span-2 -mt-1">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Administração para terceiro</p>
+          <p className="text-xs text-gray-400 mt-0.5">Deixe em branco se o imóvel é da própria locadora.</p>
+        </div>
+        <Select
+          id="proprietario_id"
+          label="Proprietário"
+          options={proprietarios.map(p => ({ value: p.id, label: p.nome }))}
+          placeholder="Imóvel próprio da locadora"
+          value={form.proprietario_id}
+          onChange={set('proprietario_id')}
+        />
+        <Input
+          id="taxa_administracao_pct"
+          label="Taxa de administração (%)"
+          type="text"
+          inputMode="decimal"
+          placeholder="10"
+          value={form.taxa_administracao_pct}
+          onChange={set('taxa_administracao_pct')}
+          disabled={!form.proprietario_id}
+        />
+      </div>
       <div className="flex justify-end">
         <Button type="submit" loading={loading}>Salvar Alterações</Button>
       </div>

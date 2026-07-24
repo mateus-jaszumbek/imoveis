@@ -35,7 +35,7 @@ export type Database = {
           email: string
           telefone: string | null
           cpf: string | null
-          role: 'admin' | 'cliente'
+          role: 'admin' | 'cliente' | 'proprietario'
           consentimento_lgpd_em: string | null
           criado_em: string
           atualizado_em: string
@@ -47,7 +47,7 @@ export type Database = {
           email: string
           telefone?: string | null
           cpf?: string | null
-          role: 'admin' | 'cliente'
+          role: 'admin' | 'cliente' | 'proprietario'
           consentimento_lgpd_em?: string | null
           criado_em?: string
           atualizado_em?: string
@@ -71,6 +71,8 @@ export type Database = {
           id: string
           locadora_id: string
           codigo: string | null
+          proprietario_id: string | null
+          taxa_administracao_pct: number
           tipo: 'apartamento' | 'casa' | 'comercial' | 'sala' | 'outro'
           endereco: string
           numero: string | null
@@ -93,6 +95,8 @@ export type Database = {
           id?: string
           locadora_id?: string
           codigo?: string | null
+          proprietario_id?: string | null
+          taxa_administracao_pct?: number
           tipo: 'apartamento' | 'casa' | 'comercial' | 'sala' | 'outro'
           endereco: string
           numero?: string | null
@@ -115,6 +119,8 @@ export type Database = {
           id?: string
           locadora_id?: string
           codigo?: string | null
+          proprietario_id?: string | null
+          taxa_administracao_pct?: number
           tipo?: 'apartamento' | 'casa' | 'comercial' | 'sala' | 'outro'
           endereco?: string
           numero?: string | null
@@ -133,7 +139,9 @@ export type Database = {
           criado_em?: string
           atualizado_em?: string
         }
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'imoveis_proprietario_id_fkey'; columns: ['proprietario_id']; referencedRelation: 'profiles'; referencedColumns: ['id'] }
+        ]
       }
       imovel_fotos: {
         Row: {
@@ -338,6 +346,41 @@ export type Database = {
           { foreignKeyName: 'despesas_imovel_id_fkey'; columns: ['imovel_id']; referencedRelation: 'imoveis'; referencedColumns: ['id'] }
         ]
       }
+      reajustes: {
+        Row: {
+          id: string
+          locacao_id: string
+          indice: 'igpm' | 'ipca' | 'inpc'
+          percentual_aplicado: number
+          valor_anterior: number
+          valor_novo: number
+          aplicado_em: string
+          criado_por: string | null
+        }
+        Insert: {
+          id?: string
+          locacao_id: string
+          indice: 'igpm' | 'ipca' | 'inpc'
+          percentual_aplicado: number
+          valor_anterior: number
+          valor_novo: number
+          aplicado_em?: string
+          criado_por?: string | null
+        }
+        Update: {
+          id?: string
+          locacao_id?: string
+          indice?: 'igpm' | 'ipca' | 'inpc'
+          percentual_aplicado?: number
+          valor_anterior?: number
+          valor_novo?: number
+          aplicado_em?: string
+          criado_por?: string | null
+        }
+        Relationships: [
+          { foreignKeyName: 'reajustes_locacao_id_fkey'; columns: ['locacao_id']; referencedRelation: 'locacoes'; referencedColumns: ['id'] }
+        ]
+      }
       conversas: {
         Row: {
           id: string
@@ -491,6 +534,7 @@ export type Locacao = Database['public']['Tables']['locacoes']['Row']
 export type Documento = Database['public']['Tables']['documentos']['Row']
 export type Boleto = Database['public']['Tables']['boletos']['Row']
 export type Despesa = Database['public']['Tables']['despesas']['Row']
+export type Reajuste = Database['public']['Tables']['reajustes']['Row']
 export type Conversa = Database['public']['Tables']['conversas']['Row']
 export type Mensagem = Database['public']['Tables']['mensagens']['Row']
 export type MensagemAnexo = Database['public']['Tables']['mensagem_anexos']['Row']

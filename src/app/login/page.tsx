@@ -32,7 +32,12 @@ export default function LoginPage() {
       .select('role')
       .eq('id', data.user.id)
       .single()
-    router.push(profile?.role === 'admin' ? '/admin/dashboard' : '/cliente/meu-imovel')
+    const destino = profile?.role === 'admin'
+      ? '/admin/dashboard'
+      : profile?.role === 'proprietario'
+        ? '/proprietario/meus-imoveis'
+        : '/cliente/meu-imovel'
+    router.push(destino)
     router.refresh()
   }
 

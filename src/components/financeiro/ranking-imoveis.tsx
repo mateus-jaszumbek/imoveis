@@ -13,13 +13,24 @@ function LinhaRanking({ item, maxAbs }: { item: ImovelAgregado; maxAbs: number }
       <div className="flex items-center justify-between mb-1.5">
         <div className="min-w-0">
           <p className="text-sm font-medium text-gray-900 truncate">{item.endereco}</p>
-          <p className="text-xs text-gray-500">{tipoImovelLabel(item.tipo)} · {item.cidade}/{item.uf}</p>
+          <p className="text-xs text-gray-500 flex items-center gap-1.5">
+            {tipoImovelLabel(item.tipo)} · {item.cidade}/{item.uf}
+            {!item.ehProprio && (
+              <span className="rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500">de terceiro</span>
+            )}
+          </p>
         </div>
-        <p className="text-sm font-bold shrink-0 ml-3" style={{ color: cor }}>{formatCurrency(item.lucro)}</p>
+        <div className="text-right shrink-0 ml-3">
+          <p className="text-sm font-bold" style={{ color: cor }}>{formatCurrency(item.lucro)}</p>
+          {!item.ehProprio && <p className="text-[11px] text-gray-400">comissão</p>}
+        </div>
       </div>
       <div className="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
         <div className="h-full rounded-full" style={{ width: `${largura}%`, backgroundColor: cor }} />
       </div>
+      {item.repasse != null && (
+        <p className="mt-1.5 text-xs text-gray-500">Repasse ao proprietário: <span className="font-medium text-gray-700">{formatCurrency(item.repasse)}</span></p>
+      )}
     </Link>
   )
 }

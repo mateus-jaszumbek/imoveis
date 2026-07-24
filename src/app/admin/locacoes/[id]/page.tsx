@@ -8,6 +8,7 @@ import { DocumentoUpload } from '@/components/documentos/documento-upload'
 import { BoletosLocacao } from '@/components/boletos/boletos-locacao'
 import { ChatAdmin } from '@/components/chat/chat-admin'
 import { EncerrarLocacao } from '@/components/locacoes/encerrar-locacao'
+import { ReajusteLocacao } from '@/components/locacoes/reajuste-locacao'
 
 export default async function LocacaoDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -25,6 +26,12 @@ export default async function LocacaoDetailPage({ params }: { params: Promise<{ 
     .select('id')
     .eq('locacao_id', id)
     .single()
+
+  const { data: reajustes } = await supabase
+    .from('reajustes')
+    .select('*')
+    .eq('locacao_id', id)
+    .order('aplicado_em', { ascending: false })
 
   return (
     <div>
@@ -57,6 +64,13 @@ export default async function LocacaoDetailPage({ params }: { params: Promise<{ 
         </div>
 
         <div className="space-y-6">
+          <ReajusteLocacao
+            locacaoId={locacao.id}
+            valorAtual={locacao.valor}
+            indiceReajuste={locacao.indice_reajuste}
+            historico={reajustes ?? []}
+          />
+
           <Card>
             <CardHeader><CardTitle>Resumo da Locação</CardTitle></CardHeader>
             <CardContent className="space-y-3">

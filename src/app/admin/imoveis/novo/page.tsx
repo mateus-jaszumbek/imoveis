@@ -1,9 +1,17 @@
+import { createClient } from '@/lib/supabase/server'
 import { ImovelForm } from '@/components/imoveis/imovel-form'
 import { PageHeader } from '@/components/layout/page-header'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 
-export default function NovoImovelPage() {
+export default async function NovoImovelPage() {
+  const supabase = await createClient()
+  const { data: proprietarios } = await supabase
+    .from('profiles')
+    .select('id, nome')
+    .eq('role', 'proprietario')
+    .order('nome')
+
   return (
     <div>
       <div className="mb-6">
@@ -12,7 +20,7 @@ export default function NovoImovelPage() {
         </Link>
         <PageHeader title="Novo Imóvel" description="Cadastre um novo imóvel na locadora" />
       </div>
-      <ImovelForm />
+      <ImovelForm proprietarios={proprietarios ?? []} />
     </div>
   )
 }

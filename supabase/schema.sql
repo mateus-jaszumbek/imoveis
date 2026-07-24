@@ -24,7 +24,7 @@ create table public.profiles (
   email text not null,
   telefone text,
   cpf text,
-  role text not null check (role in ('admin', 'cliente')),
+  role text not null check (role in ('admin', 'cliente', 'proprietario')),
   consentimento_lgpd_em timestamptz,
   criado_em timestamptz default now(),
   atualizado_em timestamptz default now()
@@ -54,6 +54,8 @@ create table public.imoveis (
   id uuid default uuid_generate_v4() primary key,
   locadora_id uuid references public.locadoras(id) not null default public.minha_locadora(),
   codigo text,
+  proprietario_id uuid references public.profiles(id),
+  taxa_administracao_pct numeric(5,2) not null default 10,
   tipo text not null check (tipo in ('apartamento', 'casa', 'comercial', 'sala', 'outro')),
   endereco text not null,
   numero text,
@@ -144,6 +146,17 @@ create table public.despesas (
   atualizado_em timestamptz default now()
 );
 
+create table public.reajustes (
+  id uuid default uuid_generate_v4() primary key,
+  locacao_id uuid references public.locacoes(id) on delete cascade not null,
+  indice text not null check (indice in ('igpm', 'ipca', 'inpc')),
+  percentual_aplicado numeric(6,2) not null,
+  valor_anterior numeric(10,2) not null,
+  valor_novo numeric(10,2) not null,
+  aplicado_em timestamptz default now(),
+  criado_por uuid references public.profiles(id)
+);
+
 create table public.conversas (
   id uuid default uuid_generate_v4() primary key,
   locacao_id uuid references public.locacoes(id) on delete cascade not null unique,
@@ -190,11 +203,13 @@ create table public.agendamentos (
 );
 
 -- ÍNDICES
+create index on public.imoveis(proprietario_id);
 create index on public.locacoes(inquilino_id);
 create index on public.locacoes(imovel_id);
 create index on public.boletos(locacao_id);
 create index on public.despesas(imovel_id);
 create index on public.despesas(data);
+create index on public.reajustes(locacao_id);
 create index on public.documentos(locacao_id);
 create index on public.mensagens(conversa_id);
 create index on public.mensagens(criado_em);
@@ -250,6 +265,27 @@ create trigger on_locacao_created
   after insert on public.locacoes
   for each row execute procedure public.handle_new_locacao();
 
+-- Funções auxiliares para as policies de proprietário (security definer —
+-- rodam sem RLS por dentro). Necessárias porque `imoveis` tem uma policy que
+-- consulta `locacoes` e vice-versa: uma policy que fizesse esse cruzamento
+-- direto (subquery comum, sujeita a RLS) causaria recursão infinita entre as
+-- duas tabelas. A função quebra o ciclo.
+create or replace function public.eh_imovel_do_proprietario(check_imovel_id uuid)
+returns boolean as $$
+  select exists (
+    select 1 from public.imoveis where id = check_imovel_id and proprietario_id = auth.uid()
+  );
+$$ language sql security definer stable;
+
+create or replace function public.eh_locacao_do_proprietario(check_locacao_id uuid)
+returns boolean as $$
+  select exists (
+    select 1 from public.locacoes l
+    join public.imoveis i on i.id = l.imovel_id
+    where l.id = check_locacao_id and i.proprietario_id = auth.uid()
+  );
+$$ language sql security definer stable;
+
 -- ROW LEVEL SECURITY
 
 alter table public.profiles enable row level security;
@@ -259,6 +295,7 @@ alter table public.locacoes enable row level security;
 alter table public.documentos enable row level security;
 alter table public.boletos enable row level security;
 alter table public.despesas enable row level security;
+alter table public.reajustes enable row level security;
 alter table public.conversas enable row level security;
 alter table public.mensagens enable row level security;
 alter table public.mensagem_anexos enable row level security;
@@ -278,6 +315,9 @@ create policy "admin gerencia imóveis da sua locadora" on public.imoveis for al
 create policy "cliente vê o próprio imóvel" on public.imoveis for select using (
   id in (select imovel_id from public.locacoes where inquilino_id = auth.uid() and status = 'ativa')
 );
+create policy "proprietário vê os próprios imóveis" on public.imoveis for select using (
+  proprietario_id = auth.uid()
+);
 
 -- FOTOS
 create policy "admin gerencia fotos da sua locadora" on public.imovel_fotos for all
@@ -286,11 +326,17 @@ create policy "admin gerencia fotos da sua locadora" on public.imovel_fotos for 
 create policy "cliente vê fotos do próprio imóvel" on public.imovel_fotos for select using (
   imovel_id in (select imovel_id from public.locacoes where inquilino_id = auth.uid() and status = 'ativa')
 );
+create policy "proprietário vê fotos dos próprios imóveis" on public.imovel_fotos for select using (
+  public.eh_imovel_do_proprietario(imovel_id)
+);
 
 -- LOCAÇÕES
 create policy "admin gerencia locações da sua locadora" on public.locacoes for all
   using (public.is_admin_da(locadora_id)) with check (public.is_admin_da(locadora_id));
 create policy "cliente vê a própria locação" on public.locacoes for select using (inquilino_id = auth.uid());
+create policy "proprietário vê locações dos próprios imóveis" on public.locacoes for select using (
+  public.eh_imovel_do_proprietario(imovel_id)
+);
 
 -- DOCUMENTOS
 create policy "admin gerencia documentos da sua locadora" on public.documentos for all
@@ -298,6 +344,9 @@ create policy "admin gerencia documentos da sua locadora" on public.documentos f
   with check (locacao_id in (select id from public.locacoes where locadora_id = public.minha_locadora()));
 create policy "cliente vê documentos da própria locação" on public.documentos for select using (
   locacao_id in (select id from public.locacoes where inquilino_id = auth.uid())
+);
+create policy "proprietário vê documentos das locações dos próprios imóveis" on public.documentos for select using (
+  public.eh_locacao_do_proprietario(locacao_id)
 );
 
 -- BOLETOS
@@ -307,10 +356,27 @@ create policy "admin gerencia boletos da sua locadora" on public.boletos for all
 create policy "cliente vê boletos da própria locação" on public.boletos for select using (
   locacao_id in (select id from public.locacoes where inquilino_id = auth.uid())
 );
+create policy "proprietário vê boletos das locações dos próprios imóveis" on public.boletos for select using (
+  public.eh_locacao_do_proprietario(locacao_id)
+);
 
--- DESPESAS (só admin — inquilino não tem acesso a custos da locadora)
+-- DESPESAS (admin gerencia; inquilino não tem acesso; proprietário só lê as dos próprios imóveis)
 create policy "admin gerencia despesas da sua locadora" on public.despesas for all
   using (public.is_admin_da(locadora_id)) with check (public.is_admin_da(locadora_id));
+create policy "proprietário vê despesas dos próprios imóveis" on public.despesas for select using (
+  public.eh_imovel_do_proprietario(imovel_id)
+);
+
+-- REAJUSTES (admin gerencia; inquilino/proprietário só leem os da própria locação — transparência)
+create policy "admin gerencia reajustes da sua locadora" on public.reajustes for all
+  using (locacao_id in (select id from public.locacoes where locadora_id = public.minha_locadora()))
+  with check (locacao_id in (select id from public.locacoes where locadora_id = public.minha_locadora()));
+create policy "cliente vê reajustes da própria locação" on public.reajustes for select using (
+  locacao_id in (select id from public.locacoes where inquilino_id = auth.uid())
+);
+create policy "proprietário vê reajustes das locações dos próprios imóveis" on public.reajustes for select using (
+  public.eh_locacao_do_proprietario(locacao_id)
+);
 
 -- CONVERSAS
 create policy "admin gerencia conversas da sua locadora" on public.conversas for all

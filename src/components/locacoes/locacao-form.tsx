@@ -88,7 +88,18 @@ export function LocacaoForm({ imoveis, inquilinos }: Props) {
             <Input id="seguro_corretora" label="Corretora de Seguro" value={form.seguro_corretora} onChange={set('seguro_corretora')} placeholder="Ex: Porto Seguro" />
             <Input id="seguro_apolice" label="Nº da Apólice" value={form.seguro_apolice} onChange={set('seguro_apolice')} />
           </div>
-          <Input id="indice_reajuste" label="Índice de Reajuste" value={form.indice_reajuste} onChange={set('indice_reajuste')} placeholder="Ex: IGPM, IPCA" />
+          <Select
+            id="indice_reajuste"
+            label="Índice de Reajuste"
+            options={[
+              { value: 'igpm', label: 'IGP-M' },
+              { value: 'ipca', label: 'IPCA' },
+              { value: 'inpc', label: 'INPC' },
+            ]}
+            placeholder="Sem reajuste automático"
+            value={form.indice_reajuste}
+            onChange={set('indice_reajuste')}
+          />
           <Textarea id="observacoes" label="Observações" value={form.observacoes} onChange={set('observacoes')} rows={3} />
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="outline" onClick={() => router.back()}>Cancelar</Button>
