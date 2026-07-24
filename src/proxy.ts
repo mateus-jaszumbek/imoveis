@@ -38,6 +38,12 @@ export async function proxy(request: NextRequest) {
     return supabaseResponse
   }
 
+  // Webhook do Asaas — chamado pelo servidor do Asaas, sem cookie de sessão.
+  // Autenticado pelo próprio token no header (validado dentro da rota).
+  if (pathname === '/api/webhooks/asaas') {
+    return supabaseResponse
+  }
+
   // Link de acompanhamento compartilhado via WhatsApp — acessado por quem não
   // tem conta (visitante, inquilino sem login). Mesmo um admin/cliente logado
   // que abra o link deve ver a página normalmente, sem ser redirecionado.
@@ -76,12 +82,26 @@ export async function proxy(request: NextRequest) {
   // Verificar papel e rota
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('role, locadoras(assinatura_status, trial_termina_em)')
     .eq('id', user.id)
     .single()
 
   if (pathname.startsWith('/admin') && profile?.role !== 'admin') {
     return NextResponse.redirect(new URL(destinoPorPapel(profile?.role), request.url))
+  }
+
+  // Bloqueia o painel admin (exceto a própria tela de assinatura) quando o
+  // trial acabou sem assinatura ativa, ou a assinatura está atrasada/cancelada.
+  // Só afeta /admin — o portal do inquilino/proprietário continua acessível.
+  if (pathname.startsWith('/admin') && pathname !== '/admin/assinatura') {
+    const locadora = profile?.locadoras as unknown as { assinatura_status: string; trial_termina_em: string } | null
+    const trialVencido = locadora?.trial_termina_em ? new Date(locadora.trial_termina_em) < new Date() : false
+    const bloqueado = locadora?.assinatura_status === 'atrasada'
+      || locadora?.assinatura_status === 'cancelada'
+      || (locadora?.assinatura_status === 'trial' && trialVencido)
+    if (bloqueado) {
+      return NextResponse.redirect(new URL('/admin/assinatura', request.url))
+    }
   }
 
   if (pathname.startsWith('/cliente') && profile?.role !== 'cliente') {

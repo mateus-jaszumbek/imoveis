@@ -14,7 +14,11 @@ create extension if not exists "uuid-ossp";
 create table public.locadoras (
   id uuid default uuid_generate_v4() primary key,
   nome text not null,
-  criado_em timestamptz default now()
+  criado_em timestamptz default now(),
+  trial_termina_em timestamptz not null default (now() + interval '5 days'),
+  assinatura_status text not null default 'trial' check (assinatura_status in ('trial', 'ativa', 'atrasada', 'cancelada')),
+  asaas_customer_id text,
+  asaas_subscription_id text
 );
 
 create table public.profiles (

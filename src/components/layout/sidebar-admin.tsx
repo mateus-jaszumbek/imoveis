@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   Building2, Users, FileText, Receipt, MessageSquare,
-  LayoutDashboard, LogOut, Home, ChevronRight, CalendarDays, Settings, DollarSign, Landmark
+  LayoutDashboard, LogOut, Home, ChevronRight, CalendarDays, Settings, DollarSign, Landmark, CreditCard
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -21,6 +21,7 @@ const links = [
   { href: '/admin/documentos', label: 'Documentos', icon: FileText },
   { href: '/admin/mensagens', label: 'Mensagens', icon: MessageSquare },
   { href: '/admin/configuracoes', label: 'Configurações', icon: Settings },
+  { href: '/admin/assinatura', label: 'Assinatura', icon: CreditCard },
 ]
 
 export function SidebarAdmin() {

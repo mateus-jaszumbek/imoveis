@@ -14,16 +14,28 @@ export type Database = {
           id: string
           nome: string
           criado_em: string
+          trial_termina_em: string
+          assinatura_status: 'trial' | 'ativa' | 'atrasada' | 'cancelada'
+          asaas_customer_id: string | null
+          asaas_subscription_id: string | null
         }
         Insert: {
           id?: string
           nome: string
           criado_em?: string
+          trial_termina_em?: string
+          assinatura_status?: 'trial' | 'ativa' | 'atrasada' | 'cancelada'
+          asaas_customer_id?: string | null
+          asaas_subscription_id?: string | null
         }
         Update: {
           id?: string
           nome?: string
           criado_em?: string
+          trial_termina_em?: string
+          assinatura_status?: 'trial' | 'ativa' | 'atrasada' | 'cancelada'
+          asaas_customer_id?: string | null
+          asaas_subscription_id?: string | null
         }
         Relationships: []
       }

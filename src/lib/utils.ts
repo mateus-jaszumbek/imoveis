@@ -54,6 +54,12 @@ export function parseMoeda(value: string): number | null {
   return isNaN(num) ? null : num
 }
 
+// Função auxiliar (fora do corpo de componentes) porque a regra de pureza do
+// React Compiler não permite chamar Date.now()/new Date() direto no render.
+export function diasAte(dataFutura: string): number {
+  return Math.ceil((new Date(dataFutura).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+}
+
 export function formatDate(date: string | null | undefined): string {
   if (!date) return '—'
   try {

@@ -247,10 +247,30 @@ export default function Home() {
           </section>
 
           <section className="lp-section">
+            <div className="lp-section-head">
+              <p className="lp-eyebrow">Preço</p>
+              <h2 className="lp-section-title">Um plano só, sem letra miúda</h2>
+            </div>
+            <div className="lp-price-card">
+              <div className="lp-price-value">
+                <span className="lp-price-currency">R$</span>150<span className="lp-price-period">/mês</span>
+              </div>
+              <p className="lp-price-trial">5 dias grátis para testar. Cancele quando quiser.</p>
+              <ul className="lp-price-list">
+                <li>Controle financeiro completo, com repasse a proprietários</li>
+                <li>Imóveis, locações e boletos sem limite</li>
+                <li>Portal do inquilino e portal do proprietário inclusos</li>
+                <li>Chat, agenda de visitas e documentos centralizados</li>
+              </ul>
+              <Link href="/cadastro" className="lp-btn lp-btn-brass lp-price-cta">Começar meu teste grátis</Link>
+            </div>
+          </section>
+
+          <section className="lp-section">
             <div className="lp-closing">
               <p className="lp-eyebrow">Próximo passo</p>
               <h2 className="lp-headline">Veja o retorno da sua própria carteira, não de uma carteira de exemplo.</h2>
-              <p className="lp-desc">Cadastre alguns imóveis e boletos que você já tem em mãos e o painel financeiro já mostra os números reais — faturamento, lucro, ranking e retorno por região, calculados a partir dos seus dados.</p>
+              <p className="lp-desc">Cadastre alguns imóveis e boletos que você já tem em mãos e o painel financeiro já mostra os números reais — faturamento, lucro, ranking e retorno por região, calculados a partir dos seus dados. 5 dias grátis, depois R$ 150/mês.</p>
               <div className="lp-hero-ctas">
                 <Link href="/cadastro" className="lp-btn lp-btn-brass">Cadastrar minha imobiliária</Link>
               </div>

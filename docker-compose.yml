@@ -28,7 +28,7 @@ services:
     image: supabase/postgres:15.1.0.117
     restart: unless-stopped
     ports:
-      - "5432:5432"    # Acesso direto ao banco (opcional)
+      - "5433:5432"    # Acesso direto ao banco (opcional)
     environment:
       POSTGRES_HOST: /var/run/postgresql
       PGPORT: 5432
