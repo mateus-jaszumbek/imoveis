@@ -7,14 +7,14 @@ export default async function ClienteLayout({ children }: { children: React.Reac
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  // O papel já foi validado pelo proxy (src/proxy.ts) — não repetir o
+  // redirecionamento por papel aqui (duas fontes de verdade independentes
+  // já causaram loop de redirecionamento em produção quando discordaram).
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, nome')
+    .select('nome')
     .eq('id', user.id)
     .single()
-
-  if (profile?.role === 'admin') redirect('/admin/dashboard')
-  if (profile?.role === 'proprietario') redirect('/proprietario/meus-imoveis')
 
   return (
     <div className="flex flex-col md:flex-row h-screen overflow-hidden">

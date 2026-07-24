@@ -16,10 +16,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     .eq('id', user.id)
     .single()
 
-  if (profile?.role === 'proprietario') redirect('/proprietario/meus-imoveis')
-  if (profile?.role !== 'admin') redirect('/cliente/meu-imovel')
-
-  const locadora = profile.locadoras as unknown as { assinatura_status: string; trial_termina_em: string } | null
+  // O papel já foi validado pelo proxy (src/proxy.ts) antes de qualquer
+  // requisição chegar aqui — não repetir esse redirecionamento aqui. Duas
+  // fontes de verdade independentes (proxy + layout) que às vezes discordam
+  // (ex: cookie de sessão instável) já causou loop de redirecionamento em
+  // produção (admin ↔ cliente ping-pong).
+  const locadora = profile?.locadoras as unknown as { assinatura_status: string; trial_termina_em: string } | null
   const diasRestantes = locadora ? diasAte(locadora.trial_termina_em) : 0
   const emTrial = locadora?.assinatura_status === 'trial' && diasRestantes >= 0
 
