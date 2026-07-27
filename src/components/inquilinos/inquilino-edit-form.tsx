@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/components/ui/toast'
 import { Dices } from 'lucide-react'
+import { usePermissoes } from '@/components/providers/permissoes-provider'
 import type { Profile } from '@/lib/types'
 
 function gerarSenha() {
@@ -16,6 +17,7 @@ function gerarSenha() {
 export function InquilinoEditForm({ inquilino }: { inquilino: Profile }) {
   const router = useRouter()
   const { toast } = useToast()
+  const { podeEditar } = usePermissoes()
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({
     nome: inquilino.nome,
@@ -45,6 +47,7 @@ export function InquilinoEditForm({ inquilino }: { inquilino: Profile }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <fieldset disabled={!podeEditar('inquilinos')} className="space-y-6">
       <div className="space-y-4">
         <Input id="nome" label="Nome completo *" value={form.nome} onChange={set('nome')} required />
         <Input id="telefone" label="Telefone" value={form.telefone} onChange={set('telefone')} />
@@ -82,10 +85,13 @@ export function InquilinoEditForm({ inquilino }: { inquilino: Profile }) {
           </div>
         </CardContent>
       </Card>
+      </fieldset>
 
-      <div className="flex justify-end">
-        <Button type="submit" loading={loading}>Salvar</Button>
-      </div>
+      {podeEditar('inquilinos') && (
+        <div className="flex justify-end">
+          <Button type="submit" loading={loading}>Salvar</Button>
+        </div>
+      )}
     </form>
   )
 }

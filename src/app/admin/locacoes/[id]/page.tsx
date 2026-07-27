@@ -9,6 +9,7 @@ import { BoletosLocacao } from '@/components/boletos/boletos-locacao'
 import { ChatAdmin } from '@/components/chat/chat-admin'
 import { EncerrarLocacao } from '@/components/locacoes/encerrar-locacao'
 import { ReajusteLocacao } from '@/components/locacoes/reajuste-locacao'
+import { SePodeEditar } from '@/components/layout/se-pode-editar'
 
 export default async function LocacaoDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -52,7 +53,11 @@ export default async function LocacaoDetailPage({ params }: { params: Promise<{ 
           <span className={`rounded-full px-3 py-1 text-sm font-medium ${locacao.status === 'ativa' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
             {locacao.status === 'ativa' ? 'Ativa' : 'Encerrada'}
           </span>
-          {locacao.status === 'ativa' && <EncerrarLocacao locacaoId={locacao.id} imovelId={(locacao as any).imovel_id} />}
+          {locacao.status === 'ativa' && (
+            <SePodeEditar secao="locacoes">
+              <EncerrarLocacao locacaoId={locacao.id} imovelId={(locacao as any).imovel_id} />
+            </SePodeEditar>
+          )}
         </div>
       </div>
 

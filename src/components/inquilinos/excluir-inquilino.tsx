@@ -5,12 +5,18 @@ import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { useToast } from '@/components/ui/toast'
 import { Trash2 } from 'lucide-react'
+import { usePermissoes } from '@/components/providers/permissoes-provider'
 
 export function ExcluirInquilino({ inquilinoId, temLocacoes }: { inquilinoId: string; temLocacoes: boolean }) {
   const [showModal, setShowModal] = useState(false)
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
+  const { isAdmin } = usePermissoes()
+
+  // Excluir/anonimizar (LGPD) é sempre exclusivo do ADM, mesmo pra funcionário
+  // com permissão de editar em 'inquilinos' — ver rota /api/admin/excluir-inquilino.
+  if (!isAdmin) return null
 
   async function handleExcluir() {
     setLoading(true)

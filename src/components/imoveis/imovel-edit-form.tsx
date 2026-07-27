@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/components/ui/toast'
+import { usePermissoes } from '@/components/providers/permissoes-provider'
 import { parseMoeda, buscarEnderecoPorCep } from '@/lib/utils'
 import type { Imovel } from '@/lib/types'
 
@@ -27,6 +28,7 @@ export function ImovelEditForm({ imovel, proprietarios = [] }: { imovel: Imovel;
   const router = useRouter()
   const supabase = createClient()
   const { toast } = useToast()
+  const { podeEditar } = usePermissoes()
   const [loading, setLoading] = useState(false)
   const [buscandoCep, setBuscandoCep] = useState(false)
   const [form, setForm] = useState({
@@ -84,6 +86,7 @@ export function ImovelEditForm({ imovel, proprietarios = [] }: { imovel: Imovel;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <fieldset disabled={!podeEditar('imoveis')} className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Select id="tipo" label="Tipo *" options={tipoOptions} value={form.tipo} onChange={set('tipo')} />
         <Input id="codigo" label="Código" value={form.codigo} onChange={set('codigo')} />
@@ -143,9 +146,12 @@ export function ImovelEditForm({ imovel, proprietarios = [] }: { imovel: Imovel;
           disabled={!form.proprietario_id}
         />
       </div>
-      <div className="flex justify-end">
-        <Button type="submit" loading={loading}>Salvar Alterações</Button>
-      </div>
+      </fieldset>
+      {podeEditar('imoveis') && (
+        <div className="flex justify-end">
+          <Button type="submit" loading={loading}>Salvar Alterações</Button>
+        </div>
+      )}
     </form>
   )
 }
