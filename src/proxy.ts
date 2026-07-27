@@ -98,12 +98,15 @@ export async function proxy(request: NextRequest) {
   }
 
   // Verificar papel e rota — consulta simples e isolada. Não junta com dados
-  // de assinatura aqui: se aquela consulta falhar ou vier vazia por qualquer
-  // motivo (cache de schema, coluna nova, instabilidade pontual), isso NÃO
-  // pode derrubar a decisão de papel e mandar um admin pro portal errado.
+  // de assinatura aqui (nem com `ativo`, ver abaixo): se aquela consulta
+  // falhar ou vier vazia por qualquer motivo (cache de schema, coluna nova,
+  // instabilidade pontual), isso NÃO pode derrubar a decisão de papel e
+  // mandar um admin pro portal errado — já aconteceu de faltar rodar uma
+  // migração e isso derrubar o menu inteiro do admin por causa de UMA coluna
+  // sem relação nenhuma com o papel dele.
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, ativo')
+    .select('role')
     .eq('id', user.id)
     .single()
 
@@ -111,10 +114,19 @@ export async function proxy(request: NextRequest) {
   // coluna nossa em profiles), então o login em si continuaria funcionando.
   // Derruba a sessão aqui mesmo — a proteção real é o RLS (tem_permissao()
   // já nega tudo pra quem está inativo), isso é só pra não deixar a pessoa
-  // logada olhando pra um painel vazio sem entender por quê.
-  if (profile?.role === 'funcionario' && profile.ativo === false) {
-    await supabase.auth.signOut()
-    return NextResponse.redirect(new URL('/login', request.url))
+  // logada olhando pra um painel vazio sem entender por quê. Consulta
+  // separada (só roda se role='funcionario', o que só existe depois da
+  // migração de funcionários) pra não arriscar a checagem de papel acima.
+  if (profile?.role === 'funcionario') {
+    const { data: statusFuncionario } = await supabase
+      .from('profiles')
+      .select('ativo')
+      .eq('id', user.id)
+      .maybeSingle()
+    if (statusFuncionario?.ativo === false) {
+      await supabase.auth.signOut()
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
   }
 
   if (pathname.startsWith('/admin') && profile?.role !== 'admin' && profile?.role !== 'funcionario') {

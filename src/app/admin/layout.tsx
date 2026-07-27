@@ -18,14 +18,30 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   // fontes de verdade independentes (proxy + layout) que às vezes discordam
   // (ex: cookie de sessão instável) já causou loop de redirecionamento em
   // produção (admin ↔ cliente ping-pong).
+  //
+  // Consulta mínima e crítica (role + locadora_id) — decide o menu inteiro,
+  // então fica isolada de qualquer outro campo. `onboarding_completo` vem de
+  // uma consulta separada logo abaixo: se aquela falhar (coluna ausente numa
+  // migração pendente, por exemplo), só o tour some — não pode derrubar o
+  // menu do admin junto, como já aconteceu aqui.
   const { data: profile } = await supabase
     .from('profiles')
-    .select('locadora_id, onboarding_completo, role')
+    .select('locadora_id, role')
     .eq('id', user.id)
     .single()
 
-  const isAdmin = profile?.role === 'admin'
+  // O proxy só deixa admin/funcionário chegarem em /admin — se essa consulta
+  // falhar por qualquer motivo, fail-open como admin (mesmo espírito do
+  // "fail-open" usado abaixo pro bloqueio de trial) em vez de esconder o
+  // menu inteiro por engano.
+  const isAdmin = profile?.role !== 'funcionario'
   const permissoes = isAdmin ? {} : await buscarPermissoesFuncionario(supabase, user.id)
+
+  const { data: onboarding } = await supabase
+    .from('profiles')
+    .select('onboarding_completo')
+    .eq('id', user.id)
+    .maybeSingle()
 
   // Consulta separada e opcional — se falhar, só o banner de trial some, o
   // resto do painel continua funcionando normalmente.
@@ -70,7 +86,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             {children}
           </div>
         </main>
-        {isAdmin && <OnboardingGate completo={profile?.onboarding_completo ?? true} />}
+        {isAdmin && <OnboardingGate completo={onboarding?.onboarding_completo ?? true} />}
       </div>
     </PermissoesProvider>
   )
