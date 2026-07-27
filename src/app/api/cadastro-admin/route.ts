@@ -1,12 +1,16 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
+import { validarCpfCnpj } from '@/lib/validators'
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
-  const { nome_locadora, nome, email, senha, aceite } = body
+  const { nome_locadora, nome, email, cpfCnpj, senha, aceite } = body
 
   if (!nome_locadora || !nome || !email) {
     return NextResponse.json({ error: 'Nome da locadora, seu nome e e-mail são obrigatórios' }, { status: 400 })
+  }
+  if (!validarCpfCnpj(cpfCnpj ?? '')) {
+    return NextResponse.json({ error: 'Informe um CPF ou CNPJ válido' }, { status: 400 })
   }
   if (!senha || senha.length < 6) {
     return NextResponse.json({ error: 'A senha deve ter pelo menos 6 caracteres' }, { status: 400 })
@@ -59,7 +63,7 @@ export async function POST(req: NextRequest) {
   // (JWT role claim fica vazio) e o login do admin quebra.
   await (adminClient.auth as any).admin.updateUserById(userData.user.id, { role: 'authenticated' })
   const { error: profileError } = await adminClient.from('profiles')
-    .update({ role: 'admin', locadora_id: locadora.id, consentimento_lgpd_em: new Date().toISOString() })
+    .update({ role: 'admin', locadora_id: locadora.id, cpf: cpfCnpj.replace(/\D/g, ''), consentimento_lgpd_em: new Date().toISOString() })
     .eq('id', userData.user.id)
 
   if (profileError) {

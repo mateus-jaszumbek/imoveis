@@ -6,9 +6,10 @@ import { Building2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { validarCpfCnpj } from '@/lib/validators'
 
 export default function CadastroPage() {
-  const [form, setForm] = useState({ nome_locadora: '', nome: '', email: '', senha: '', confirmarSenha: '' })
+  const [form, setForm] = useState({ nome_locadora: '', nome: '', email: '', cpfCnpj: '', senha: '', confirmarSenha: '' })
   const [aceite, setAceite] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -23,6 +24,10 @@ export default function CadastroPage() {
     setError('')
     if (form.senha !== form.confirmarSenha) {
       setError('As senhas não coincidem.')
+      return
+    }
+    if (!validarCpfCnpj(form.cpfCnpj)) {
+      setError('Informe um CPF ou CNPJ válido.')
       return
     }
     if (!aceite) {
@@ -66,6 +71,15 @@ export default function CadastroPage() {
             <Input id="nome_locadora" label="Nome da locadora" value={form.nome_locadora} onChange={set('nome_locadora')} placeholder="Ex: Imóveis Silva" required />
             <Input id="nome" label="Seu nome" value={form.nome} onChange={set('nome')} required />
             <Input id="email" label="E-mail" type="email" value={form.email} onChange={set('email')} placeholder="seu@email.com" required />
+            <Input
+              id="cpfCnpj"
+              label="CPF ou CNPJ"
+              hint="Necessário para gerar a cobrança da sua assinatura mensal. Aceita CPF (pessoa física) ou CNPJ (empresa)."
+              value={form.cpfCnpj}
+              onChange={set('cpfCnpj')}
+              placeholder="000.000.000-00 ou 00.000.000/0000-00"
+              required
+            />
             <Input id="senha" label="Senha" type="password" value={form.senha} onChange={set('senha')} placeholder="Mínimo 6 caracteres" minLength={6} required />
             <Input id="confirmarSenha" label="Confirmar senha" type="password" value={form.confirmarSenha} onChange={set('confirmarSenha')} required />
             <label className="flex items-start gap-2 text-xs text-gray-600">
