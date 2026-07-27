@@ -62,6 +62,12 @@ export async function proxy(request: NextRequest) {
     return supabaseResponse
   }
 
+  // Apresentação comercial (slideshow) — enviada por link para clientes que
+  // não têm conta, e também deve abrir normalmente para quem já está logado.
+  if (pathname.startsWith('/apresentacao')) {
+    return supabaseResponse
+  }
+
   // Link de redefinição de senha vindo do e-mail do Supabase. Nesse momento
   // ainda não existe sessão nos cookies (o token vem na URL e só é trocado
   // por uma sessão no client, via JS) — não pode cair no "!user → /login"
