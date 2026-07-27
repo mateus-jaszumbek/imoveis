@@ -35,9 +35,19 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const diasRestantes = locadora ? diasAte(locadora.trial_termina_em) : 0
   const emTrial = locadora?.assinatura_status === 'trial' && diasRestantes >= 0
 
+  // Mesma regra do proxy (src/proxy.ts) — aqui só controla a aparência do
+  // menu (cadeado nos links). Quem realmente impede o acesso é o proxy;
+  // fail-open (locadora null) para não travar o menu por uma falha de consulta.
+  const trialVencido = locadora ? new Date(locadora.trial_termina_em) < new Date() : false
+  const bloqueado = locadora
+    ? locadora.assinatura_status === 'atrasada'
+      || locadora.assinatura_status === 'cancelada'
+      || (locadora.assinatura_status === 'trial' && trialVencido)
+    : false
+
   return (
     <div className="flex h-screen overflow-hidden">
-      <SidebarAdmin />
+      <SidebarAdmin bloqueado={bloqueado} />
       <main className="flex-1 overflow-y-auto bg-gray-50">
         {emTrial && (
           <div className="flex items-center justify-center gap-2 bg-amber-50 border-b border-amber-200 px-4 py-2 text-sm text-amber-800">
