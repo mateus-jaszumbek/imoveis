@@ -9,6 +9,7 @@ import { useToast } from '@/components/ui/toast'
 import { formatCurrency, formatDatetime } from '@/lib/utils'
 import { INDICES_LABEL } from '@/lib/indices-economicos'
 import { TrendingUp } from 'lucide-react'
+import { usePermissoes } from '@/components/providers/permissoes-provider'
 import type { Reajuste } from '@/lib/types'
 
 interface Resultado {
@@ -38,6 +39,7 @@ export function ReajusteLocacao({
   const router = useRouter()
   const supabase = createClient()
   const { toast } = useToast()
+  const { podeEditar } = usePermissoes()
   const [indice, setIndice] = useState(indiceReajuste ?? '')
   const [salvandoIndice, setSalvandoIndice] = useState(false)
   const [calculando, setCalculando] = useState(false)
@@ -99,7 +101,12 @@ export function ReajusteLocacao({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {!indice ? (
+        {!podeEditar('locacoes') ? (
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-500">Valor atual do aluguel</span>
+            <span className="font-bold text-gray-900">{formatCurrency(valorAtual)}</span>
+          </div>
+        ) : !indice ? (
           <div className="space-y-3">
             <p className="text-sm text-gray-500">Nenhum índice de reajuste definido para esta locação.</p>
             <div className="flex items-end gap-2">

@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { PageHeader } from '@/components/layout/page-header'
 import { EmptyState } from '@/components/ui/empty-state'
+import { SePodeEditar } from '@/components/layout/se-pode-editar'
 import { formatCurrency, statusImovelLabel, statusImovelColor, tipoImovelLabel } from '@/lib/utils'
 
 export default async function ImoveisPage() {
@@ -21,9 +22,11 @@ export default async function ImoveisPage() {
         title="Imóveis"
         description={`${imoveis?.length ?? 0} imóveis cadastrados`}
         action={
-          <Link href="/admin/imoveis/novo">
-            <Button><Plus className="h-4 w-4" />Novo Imóvel</Button>
-          </Link>
+          <SePodeEditar secao="imoveis">
+            <Link href="/admin/imoveis/novo">
+              <Button><Plus className="h-4 w-4" />Novo Imóvel</Button>
+            </Link>
+          </SePodeEditar>
         }
       />
       {!imoveis?.length ? (
@@ -32,9 +35,11 @@ export default async function ImoveisPage() {
           title="Nenhum imóvel cadastrado"
           description="Cadastre o primeiro imóvel para começar."
           action={
-            <Link href="/admin/imoveis/novo">
-              <Button><Plus className="h-4 w-4" />Cadastrar imóvel</Button>
-            </Link>
+            <SePodeEditar secao="imoveis">
+              <Link href="/admin/imoveis/novo">
+                <Button><Plus className="h-4 w-4" />Cadastrar imóvel</Button>
+              </Link>
+            </SePodeEditar>
           }
         />
       ) : (

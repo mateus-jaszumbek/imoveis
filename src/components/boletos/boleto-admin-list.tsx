@@ -7,12 +7,14 @@ import { useToast } from '@/components/ui/toast'
 import { useRouter } from 'next/navigation'
 import { formatCurrency, formatDate, statusBoletoColor, statusBoletoLabel, formatMesReferencia } from '@/lib/utils'
 import { CheckCircle, Clock, AlertTriangle, Download } from 'lucide-react'
+import { usePermissoes } from '@/components/providers/permissoes-provider'
 
 export function BoletoAdminList({ boletos: initialBoletos }: { boletos: any[] }) {
   const [boletos, setBoletos] = useState(initialBoletos)
   const supabase = createClient()
   const { toast } = useToast()
   const router = useRouter()
+  const { podeEditar } = usePermissoes()
 
   async function updateStatus(id: string, status: 'em_aberto' | 'pago' | 'vencido') {
     const pago_em = status === 'pago' ? new Date().toISOString().split('T')[0] : null
@@ -48,12 +50,12 @@ export function BoletoAdminList({ boletos: initialBoletos }: { boletos: any[] })
                     {statusBoletoLabel(boleto.status)}
                   </span>
                   <div className="flex gap-2 mt-2 justify-end">
-                    {boleto.status !== 'pago' && (
+                    {boleto.status !== 'pago' && podeEditar('boletos') && (
                       <Button size="sm" variant="success" onClick={() => updateStatus(boleto.id, 'pago')}>
                         <CheckCircle className="h-3 w-3" />Pago
                       </Button>
                     )}
-                    {boleto.status === 'pago' && (
+                    {boleto.status === 'pago' && podeEditar('boletos') && (
                       <Button size="sm" variant="outline" onClick={() => updateStatus(boleto.id, 'em_aberto')}>
                         Reabrir
                       </Button>

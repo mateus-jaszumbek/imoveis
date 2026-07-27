@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { PageHeader } from '@/components/layout/page-header'
 import { EmptyState } from '@/components/ui/empty-state'
+import { SePodeEditar } from '@/components/layout/se-pode-editar'
 import { formatDate, formatCurrency } from '@/lib/utils'
 
 export default async function LocacoesPage() {
@@ -23,13 +24,15 @@ export default async function LocacoesPage() {
         title="Locações"
         description={`${ativas.length} ativas · ${encerradas.length} encerradas`}
         action={
-          <Link href="/admin/locacoes/nova">
-            <Button><Plus className="h-4 w-4" />Nova Locação</Button>
-          </Link>
+          <SePodeEditar secao="locacoes">
+            <Link href="/admin/locacoes/nova">
+              <Button><Plus className="h-4 w-4" />Nova Locação</Button>
+            </Link>
+          </SePodeEditar>
         }
       />
       {!locacoes?.length ? (
-        <EmptyState icon={Home} title="Nenhuma locação cadastrada" description="Vincule um inquilino a um imóvel para criar uma locação." action={<Link href="/admin/locacoes/nova"><Button><Plus className="h-4 w-4" />Nova Locação</Button></Link>} />
+        <EmptyState icon={Home} title="Nenhuma locação cadastrada" description="Vincule um inquilino a um imóvel para criar uma locação." action={<SePodeEditar secao="locacoes"><Link href="/admin/locacoes/nova"><Button><Plus className="h-4 w-4" />Nova Locação</Button></Link></SePodeEditar>} />
       ) : (
         <div className="space-y-6">
           {ativas.length > 0 && (

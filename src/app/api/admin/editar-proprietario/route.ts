@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { podeGerenciarSecao } from '@/lib/permissoes'
 
 export async function POST(req: NextRequest) {
   const cookieStore = await cookies()
@@ -19,7 +20,9 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 
   const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') return NextResponse.json({ error: 'Acesso negado' }, { status: 403 })
+  if (!await podeGerenciarSecao(supabase, user.id, profile?.role, 'proprietarios')) {
+    return NextResponse.json({ error: 'Acesso negado' }, { status: 403 })
+  }
 
   const body = await req.json()
   const { id, nome, email, telefone, cpf, senha } = body

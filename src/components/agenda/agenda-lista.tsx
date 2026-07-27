@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/toast'
 import { useRouter } from 'next/navigation'
 import { formatDatetime, tipoAgendamentoLabel, statusAgendamentoColor, statusAgendamentoLabel } from '@/lib/utils'
 import { CheckCircle, X, MapPin, User, Phone, Mail, Link2, MessageCircle } from 'lucide-react'
+import { usePermissoes } from '@/components/providers/permissoes-provider'
 import type { AgendamentoComRelacoes } from '@/lib/types'
 
 function linkAcompanhamento(id: string) {
@@ -24,6 +25,7 @@ export function AgendaLista({ agendamentos: initial }: { agendamentos: Agendamen
   const supabase = createClient()
   const { toast } = useToast()
   const router = useRouter()
+  const { podeEditar } = usePermissoes()
 
   async function updateStatus(id: string, status: 'realizado' | 'cancelado') {
     const { error } = await supabase.from('agendamentos').update({ status }).eq('id', id)
@@ -111,7 +113,7 @@ export function AgendaLista({ agendamentos: initial }: { agendamentos: Agendamen
                       <MessageCircle className="h-3 w-3" />
                     </Button>
                   </div>
-                  {ag.status === 'agendado' && (
+                  {ag.status === 'agendado' && podeEditar('agenda') && (
                     <div className="flex gap-2 mt-2 justify-end">
                       <Button size="sm" variant="success" onClick={() => updateStatus(ag.id, 'realizado')}>
                         <CheckCircle className="h-3 w-3" />Realizado

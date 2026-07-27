@@ -9,6 +9,7 @@ import { Modal } from '@/components/ui/modal'
 import { useToast } from '@/components/ui/toast'
 import { formatCurrency, formatDate, categoriaDespesaLabel, parseMoeda } from '@/lib/utils'
 import { Plus, Trash2, Wallet } from 'lucide-react'
+import { usePermissoes } from '@/components/providers/permissoes-provider'
 import type { Despesa } from '@/lib/types'
 
 const CATEGORIAS = [
@@ -27,6 +28,7 @@ export function DespesasImovel({ imovelId }: { imovelId: string }) {
   const [loading, setLoading] = useState(false)
   const supabase = createClient()
   const { toast } = useToast()
+  const { podeEditar } = usePermissoes()
 
   const hoje = new Date().toISOString().split('T')[0]
 
@@ -77,9 +79,11 @@ export function DespesasImovel({ imovelId }: { imovelId: string }) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Despesas</CardTitle>
-            <Button size="sm" onClick={() => setShowModal(true)}>
-              <Plus className="h-4 w-4" />Nova Despesa
-            </Button>
+            {podeEditar('imoveis') && (
+              <Button size="sm" onClick={() => setShowModal(true)}>
+                <Plus className="h-4 w-4" />Nova Despesa
+              </Button>
+            )}
           </div>
         </CardHeader>
         <div className="divide-y divide-gray-50">
@@ -99,9 +103,11 @@ export function DespesasImovel({ imovelId }: { imovelId: string }) {
                   </div>
                   <div className="flex items-center gap-3 shrink-0">
                     <p className="font-bold text-gray-900">{formatCurrency(despesa.valor)}</p>
-                    <Button size="sm" variant="outline" onClick={() => handleDelete(despesa.id)}>
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+                    {podeEditar('imoveis') && (
+                      <Button size="sm" variant="outline" onClick={() => handleDelete(despesa.id)}>
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}

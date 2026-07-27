@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { PageHeader } from '@/components/layout/page-header'
 import { EmptyState } from '@/components/ui/empty-state'
+import { SePodeEditar } from '@/components/layout/se-pode-editar'
 import { getInitials } from '@/lib/utils'
 
 export default async function InquilinosPage() {
@@ -21,9 +22,11 @@ export default async function InquilinosPage() {
         title="Inquilinos"
         description={`${inquilinos?.length ?? 0} inquilinos cadastrados`}
         action={
-          <Link href="/admin/inquilinos/novo">
-            <Button><Plus className="h-4 w-4" />Novo Inquilino</Button>
-          </Link>
+          <SePodeEditar secao="inquilinos">
+            <Link href="/admin/inquilinos/novo">
+              <Button><Plus className="h-4 w-4" />Novo Inquilino</Button>
+            </Link>
+          </SePodeEditar>
         }
       />
       {!inquilinos?.length ? (
@@ -32,9 +35,11 @@ export default async function InquilinosPage() {
           title="Nenhum inquilino cadastrado"
           description="Cadastre inquilinos para vinculá-los a imóveis."
           action={
-            <Link href="/admin/inquilinos/novo">
-              <Button><Plus className="h-4 w-4" />Cadastrar inquilino</Button>
-            </Link>
+            <SePodeEditar secao="inquilinos">
+              <Link href="/admin/inquilinos/novo">
+                <Button><Plus className="h-4 w-4" />Cadastrar inquilino</Button>
+              </Link>
+            </SePodeEditar>
           }
         />
       ) : (

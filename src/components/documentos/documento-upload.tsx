@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Upload, FileText, Trash2, Download } from 'lucide-react'
+import { usePermissoes } from '@/components/providers/permissoes-provider'
 import { tipoDocumentoLabel, formatDate } from '@/lib/utils'
 import type { Documento } from '@/lib/types'
 
@@ -24,6 +25,7 @@ export function DocumentoUpload({ locacaoId, title = 'Documentos', tipos }: Docu
   const fileRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
   const { toast } = useToast()
+  const { podeEditar } = usePermissoes()
 
   const tiposDisponiveis = tipos ?? todosTipos
   const tipoOptions = tiposDisponiveis.map(t => ({ value: t, label: tipoDocumentoLabel(t) }))
@@ -75,17 +77,19 @@ export function DocumentoUpload({ locacaoId, title = 'Documentos', tipos }: Docu
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex gap-2">
-          <div className="flex-1">
-            <Select id="tipo" label="" options={tipoOptions} value={tipoSelecionado} onChange={e => setTipoSelecionado(e.target.value)} />
+        {podeEditar('documentos') && (
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <Select id="tipo" label="" options={tipoOptions} value={tipoSelecionado} onChange={e => setTipoSelecionado(e.target.value)} />
+            </div>
+            <div className="flex items-end">
+              <Button variant="outline" onClick={() => fileRef.current?.click()} loading={uploading}>
+                <Upload className="h-4 w-4" />Enviar
+              </Button>
+              <input ref={fileRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" className="hidden" onChange={handleUpload} />
+            </div>
           </div>
-          <div className="flex items-end">
-            <Button variant="outline" onClick={() => fileRef.current?.click()} loading={uploading}>
-              <Upload className="h-4 w-4" />Enviar
-            </Button>
-            <input ref={fileRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx" className="hidden" onChange={handleUpload} />
-          </div>
-        </div>
+        )}
         <div className="space-y-2">
           {!documentos.length ? (
             <p className="text-sm text-gray-400 text-center py-4">Nenhum documento enviado</p>
@@ -102,9 +106,11 @@ export function DocumentoUpload({ locacaoId, title = 'Documentos', tipos }: Docu
                 <Button size="sm" variant="ghost" onClick={() => handleDownload(doc)}>
                   <Download className="h-3.5 w-3.5" />
                 </Button>
-                <Button size="sm" variant="ghost" onClick={() => handleDelete(doc)}>
-                  <Trash2 className="h-3.5 w-3.5 text-red-400" />
-                </Button>
+                {podeEditar('documentos') && (
+                  <Button size="sm" variant="ghost" onClick={() => handleDelete(doc)}>
+                    <Trash2 className="h-3.5 w-3.5 text-red-400" />
+                  </Button>
+                )}
               </div>
             </div>
           ))}

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { PageHeader } from '@/components/layout/page-header'
 import { EmptyState } from '@/components/ui/empty-state'
+import { SePodeEditar } from '@/components/layout/se-pode-editar'
 import { getInitials } from '@/lib/utils'
 import type { Profile } from '@/lib/types'
 
@@ -24,9 +25,11 @@ export default async function ProprietariosPage() {
         title="Proprietários"
         description={`${proprietarios?.length ?? 0} proprietários cadastrados`}
         action={
-          <Link href="/admin/proprietarios/novo">
-            <Button><Plus className="h-4 w-4" />Novo Proprietário</Button>
-          </Link>
+          <SePodeEditar secao="proprietarios">
+            <Link href="/admin/proprietarios/novo">
+              <Button><Plus className="h-4 w-4" />Novo Proprietário</Button>
+            </Link>
+          </SePodeEditar>
         }
       />
       {!proprietarios?.length ? (
@@ -35,9 +38,11 @@ export default async function ProprietariosPage() {
           title="Nenhum proprietário cadastrado"
           description="Cadastre proprietários para vincular imóveis administrados por terceiros e calcular o repasse automaticamente."
           action={
-            <Link href="/admin/proprietarios/novo">
-              <Button><Plus className="h-4 w-4" />Cadastrar proprietário</Button>
-            </Link>
+            <SePodeEditar secao="proprietarios">
+              <Link href="/admin/proprietarios/novo">
+                <Button><Plus className="h-4 w-4" />Cadastrar proprietário</Button>
+              </Link>
+            </SePodeEditar>
           }
         />
       ) : (

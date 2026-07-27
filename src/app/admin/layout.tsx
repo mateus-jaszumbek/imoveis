@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { SidebarAdmin } from '@/components/layout/sidebar-admin'
 import { OnboardingGate } from '@/components/onboarding/onboarding-gate'
+import { PermissoesProvider } from '@/components/providers/permissoes-provider'
+import { buscarPermissoesFuncionario } from '@/lib/permissoes'
 import { diasAte } from '@/lib/utils'
 import { Clock } from 'lucide-react'
 
@@ -18,9 +20,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   // produção (admin ↔ cliente ping-pong).
   const { data: profile } = await supabase
     .from('profiles')
-    .select('locadora_id, onboarding_completo')
+    .select('locadora_id, onboarding_completo, role')
     .eq('id', user.id)
     .single()
+
+  const isAdmin = profile?.role === 'admin'
+  const permissoes = isAdmin ? {} : await buscarPermissoesFuncionario(supabase, user.id)
 
   // Consulta separada e opcional — se falhar, só o banner de trial some, o
   // resto do painel continua funcionando normalmente.
@@ -46,25 +51,27 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     : false
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <SidebarAdmin bloqueado={bloqueado} />
-      <main className="flex-1 overflow-y-auto bg-gray-50">
-        {emTrial && (
-          <div className="flex items-center justify-center gap-2 bg-amber-50 border-b border-amber-200 px-4 py-2 text-sm text-amber-800">
-            <Clock className="h-4 w-4 shrink-0" />
-            <span>
-              Seu teste grátis termina em {diasRestantes === 0 ? 'hoje' : diasRestantes === 1 ? '1 dia' : `${diasRestantes} dias`}.
-            </span>
-            <Link href="/admin/assinatura" className="font-semibold underline underline-offset-2 hover:text-amber-900">
-              Assinar agora
-            </Link>
+    <PermissoesProvider isAdmin={isAdmin} permissoes={permissoes}>
+      <div className="flex h-screen overflow-hidden">
+        <SidebarAdmin bloqueado={bloqueado} isAdmin={isAdmin} permissoes={permissoes} />
+        <main className="flex-1 overflow-y-auto bg-gray-50">
+          {emTrial && isAdmin && (
+            <div className="flex items-center justify-center gap-2 bg-amber-50 border-b border-amber-200 px-4 py-2 text-sm text-amber-800">
+              <Clock className="h-4 w-4 shrink-0" />
+              <span>
+                Seu teste grátis termina em {diasRestantes === 0 ? 'hoje' : diasRestantes === 1 ? '1 dia' : `${diasRestantes} dias`}.
+              </span>
+              <Link href="/admin/assinatura" className="font-semibold underline underline-offset-2 hover:text-amber-900">
+                Assinar agora
+              </Link>
+            </div>
+          )}
+          <div className="p-6 max-w-7xl mx-auto">
+            {children}
           </div>
-        )}
-        <div className="p-6 max-w-7xl mx-auto">
-          {children}
-        </div>
-      </main>
-      <OnboardingGate completo={profile?.onboarding_completo ?? true} />
-    </div>
+        </main>
+        {isAdmin && <OnboardingGate completo={profile?.onboarding_completo ?? true} />}
+      </div>
+    </PermissoesProvider>
   )
 }

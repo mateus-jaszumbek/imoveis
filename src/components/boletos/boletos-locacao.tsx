@@ -9,6 +9,7 @@ import { Modal } from '@/components/ui/modal'
 import { useToast } from '@/components/ui/toast'
 import { formatCurrency, formatDate, statusBoletoColor, statusBoletoLabel, formatMesReferencia, parseMoeda } from '@/lib/utils'
 import { Plus, CheckCircle, Clock, AlertTriangle, Upload, Download } from 'lucide-react'
+import { usePermissoes } from '@/components/providers/permissoes-provider'
 import type { Boleto } from '@/lib/types'
 
 export function BoletosLocacao({ locacaoId }: { locacaoId: string }) {
@@ -18,6 +19,7 @@ export function BoletosLocacao({ locacaoId }: { locacaoId: string }) {
   const [loading, setLoading] = useState(false)
   const supabase = createClient()
   const { toast } = useToast()
+  const { podeEditar } = usePermissoes()
 
   const hoje = new Date()
   const defaultMes = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`
@@ -87,9 +89,11 @@ export function BoletosLocacao({ locacaoId }: { locacaoId: string }) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Boletos</CardTitle>
-            <Button size="sm" onClick={() => setShowModal(true)}>
-              <Plus className="h-4 w-4" />Novo Boleto
-            </Button>
+            {podeEditar('boletos') && (
+              <Button size="sm" onClick={() => setShowModal(true)}>
+                <Plus className="h-4 w-4" />Novo Boleto
+              </Button>
+            )}
           </div>
         </CardHeader>
         <div className="divide-y divide-gray-50">
@@ -116,12 +120,12 @@ export function BoletosLocacao({ locacaoId }: { locacaoId: string }) {
                     {statusBoletoLabel(boleto.status)}
                   </span>
                   <div className="flex gap-1 mt-1 justify-end">
-                    {boleto.status !== 'pago' && (
+                    {boleto.status !== 'pago' && podeEditar('boletos') && (
                       <Button size="sm" variant="success" onClick={() => updateStatus(boleto.id, 'pago')}>
                         <CheckCircle className="h-3 w-3" />Pago
                       </Button>
                     )}
-                    {boleto.status === 'pago' && (
+                    {boleto.status === 'pago' && podeEditar('boletos') && (
                       <Button size="sm" variant="outline" onClick={() => updateStatus(boleto.id, 'em_aberto')}>
                         Reabrir
                       </Button>

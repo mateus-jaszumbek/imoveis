@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/layout/page-header'
 import { EmptyState } from '@/components/ui/empty-state'
+import { SePodeEditar } from '@/components/layout/se-pode-editar'
 import { AgendaLista } from '@/components/agenda/agenda-lista'
 
 export default async function AgendaPage() {
@@ -19,9 +20,11 @@ export default async function AgendaPage() {
         title="Agenda"
         description="Visitas e entrega/retirada de chaves"
         action={
-          <Link href="/admin/agenda/nova">
-            <Button><Plus className="h-4 w-4" />Novo Agendamento</Button>
-          </Link>
+          <SePodeEditar secao="agenda">
+            <Link href="/admin/agenda/nova">
+              <Button><Plus className="h-4 w-4" />Novo Agendamento</Button>
+            </Link>
+          </SePodeEditar>
         }
       />
       {!agendamentos?.length ? (
@@ -30,9 +33,11 @@ export default async function AgendaPage() {
           title="Nenhum agendamento"
           description="Agende visitas a imóveis ou entrega/retirada de chaves."
           action={
-            <Link href="/admin/agenda/nova">
-              <Button><Plus className="h-4 w-4" />Novo Agendamento</Button>
-            </Link>
+            <SePodeEditar secao="agenda">
+              <Link href="/admin/agenda/nova">
+                <Button><Plus className="h-4 w-4" />Novo Agendamento</Button>
+              </Link>
+            </SePodeEditar>
           }
         />
       ) : (

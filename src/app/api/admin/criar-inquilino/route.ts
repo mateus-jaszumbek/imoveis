@@ -1,11 +1,12 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { podeGerenciarSecao } from '@/lib/permissoes'
 
 export async function POST(req: NextRequest) {
   const cookieStore = await cookies()
 
-  // Verifica se quem chama é admin
+  // Verifica se quem chama é admin ou funcionário com permissão de editar em 'inquilinos'
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -20,7 +21,9 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
 
   const { data: profile } = await supabase.from('profiles').select('role, locadora_id').eq('id', user.id).single()
-  if (profile?.role !== 'admin') return NextResponse.json({ error: 'Acesso negado' }, { status: 403 })
+  if (!profile || !await podeGerenciarSecao(supabase, user.id, profile.role, 'inquilinos')) {
+    return NextResponse.json({ error: 'Acesso negado' }, { status: 403 })
+  }
 
   const body = await req.json()
   const { nome, email, telefone, cpf, senha, aceite } = body

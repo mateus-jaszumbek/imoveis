@@ -47,7 +47,8 @@ export type Database = {
           email: string
           telefone: string | null
           cpf: string | null
-          role: 'admin' | 'cliente' | 'proprietario'
+          role: 'admin' | 'cliente' | 'proprietario' | 'funcionario'
+          ativo: boolean
           consentimento_lgpd_em: string | null
           onboarding_completo: boolean
           criado_em: string
@@ -60,7 +61,8 @@ export type Database = {
           email: string
           telefone?: string | null
           cpf?: string | null
-          role: 'admin' | 'cliente' | 'proprietario'
+          role: 'admin' | 'cliente' | 'proprietario' | 'funcionario'
+          ativo?: boolean
           consentimento_lgpd_em?: string | null
           onboarding_completo?: boolean
           criado_em?: string
@@ -73,13 +75,40 @@ export type Database = {
           email?: string
           telefone?: string | null
           cpf?: string | null
-          role?: 'admin' | 'cliente'
+          role?: 'admin' | 'cliente' | 'proprietario' | 'funcionario'
+          ativo?: boolean
           consentimento_lgpd_em?: string | null
           onboarding_completo?: boolean
           criado_em?: string
           atualizado_em?: string
         }
         Relationships: []
+      }
+      funcionario_permissoes: {
+        Row: {
+          id: string
+          profile_id: string
+          secao: 'financeiro' | 'imoveis' | 'inquilinos' | 'proprietarios' | 'locacoes' | 'agenda' | 'boletos' | 'documentos' | 'mensagens'
+          pode_editar: boolean
+          criado_em: string
+        }
+        Insert: {
+          id?: string
+          profile_id: string
+          secao: 'financeiro' | 'imoveis' | 'inquilinos' | 'proprietarios' | 'locacoes' | 'agenda' | 'boletos' | 'documentos' | 'mensagens'
+          pode_editar?: boolean
+          criado_em?: string
+        }
+        Update: {
+          id?: string
+          profile_id?: string
+          secao?: 'financeiro' | 'imoveis' | 'inquilinos' | 'proprietarios' | 'locacoes' | 'agenda' | 'boletos' | 'documentos' | 'mensagens'
+          pode_editar?: boolean
+          criado_em?: string
+        }
+        Relationships: [
+          { foreignKeyName: 'funcionario_permissoes_profile_id_fkey'; columns: ['profile_id']; referencedRelation: 'profiles'; referencedColumns: ['id'] }
+        ]
       }
       imoveis: {
         Row: {
@@ -554,6 +583,21 @@ export type Conversa = Database['public']['Tables']['conversas']['Row']
 export type Mensagem = Database['public']['Tables']['mensagens']['Row']
 export type MensagemAnexo = Database['public']['Tables']['mensagem_anexos']['Row']
 export type Agendamento = Database['public']['Tables']['agendamentos']['Row']
+export type FuncionarioPermissao = Database['public']['Tables']['funcionario_permissoes']['Row']
+
+export const SECOES_FUNCIONARIO = [
+  { secao: 'financeiro', label: 'Financeiro', temEditar: false },
+  { secao: 'imoveis', label: 'Imóveis', temEditar: true },
+  { secao: 'inquilinos', label: 'Inquilinos', temEditar: true },
+  { secao: 'proprietarios', label: 'Proprietários', temEditar: true },
+  { secao: 'locacoes', label: 'Locações', temEditar: true },
+  { secao: 'agenda', label: 'Agenda', temEditar: true },
+  { secao: 'boletos', label: 'Boletos', temEditar: true },
+  { secao: 'documentos', label: 'Documentos', temEditar: true },
+  { secao: 'mensagens', label: 'Mensagens', temEditar: true },
+] as const
+
+export type SecaoFuncionario = typeof SECOES_FUNCIONARIO[number]['secao']
 
 export type LocacaoComRelacoes = Locacao & {
   imoveis: Imovel

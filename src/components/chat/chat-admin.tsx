@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/toast'
 import { Send, Paperclip, Image, FileText, X } from 'lucide-react'
+import { usePermissoes } from '@/components/providers/permissoes-provider'
 import { formatDatetime, getInitials } from '@/lib/utils'
 import type { MensagemComAnexos } from '@/lib/types'
 
@@ -18,6 +19,7 @@ export function ChatAdmin({ conversaId }: { conversaId: string }) {
   const fileRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
   const { toast } = useToast()
+  const { podeEditar } = usePermissoes()
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setProfileId(data.user?.id ?? null))
@@ -154,29 +156,33 @@ export function ChatAdmin({ conversaId }: { conversaId: string }) {
           </div>
         )}
 
-        <form onSubmit={handleSend} className="border-t border-gray-100 p-3 flex gap-2">
-          <input
-            ref={fileRef}
-            type="file"
-            multiple
-            accept="image/*,.pdf"
-            className="hidden"
-            onChange={e => setAnexos(prev => [...prev, ...Array.from(e.target.files ?? [])])}
-          />
-          <button type="button" onClick={() => fileRef.current?.click()} className="text-gray-400 hover:text-gray-600 shrink-0">
-            <Paperclip className="h-5 w-5" />
-          </button>
-          <input
-            type="text"
-            value={texto}
-            onChange={e => setTexto(e.target.value)}
-            placeholder="Digite uma mensagem..."
-            className="flex-1 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <Button type="submit" size="sm" loading={sending} disabled={!texto.trim() && !anexos.length}>
-            <Send className="h-4 w-4" />
-          </Button>
-        </form>
+        {podeEditar('mensagens') ? (
+          <form onSubmit={handleSend} className="border-t border-gray-100 p-3 flex gap-2">
+            <input
+              ref={fileRef}
+              type="file"
+              multiple
+              accept="image/*,.pdf"
+              className="hidden"
+              onChange={e => setAnexos(prev => [...prev, ...Array.from(e.target.files ?? [])])}
+            />
+            <button type="button" onClick={() => fileRef.current?.click()} className="text-gray-400 hover:text-gray-600 shrink-0">
+              <Paperclip className="h-5 w-5" />
+            </button>
+            <input
+              type="text"
+              value={texto}
+              onChange={e => setTexto(e.target.value)}
+              placeholder="Digite uma mensagem..."
+              className="flex-1 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <Button type="submit" size="sm" loading={sending} disabled={!texto.trim() && !anexos.length}>
+              <Send className="h-4 w-4" />
+            </Button>
+          </form>
+        ) : (
+          <p className="border-t border-gray-100 p-3 text-center text-xs text-gray-400">Você não tem permissão para responder mensagens.</p>
+        )}
       </div>
     </Card>
   )
