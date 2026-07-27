@@ -45,9 +45,9 @@ export function InquilinoForm() {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           <Input id="nome" label="Nome completo *" value={form.nome} onChange={set('nome')} required />
-          <Input id="email" label="E-mail (login) *" type="email" value={form.email} onChange={set('email')} required />
+          <Input id="email" label="E-mail (login) *" hint="É o e-mail que o inquilino vai usar para entrar no painel dele. Combine antes com o inquilino." type="email" value={form.email} onChange={set('email')} required />
           <Input id="telefone" label="Telefone" type="tel" value={form.telefone} onChange={set('telefone')} placeholder="(00) 00000-0000" />
-          <Input id="cpf" label="CPF" value={form.cpf} onChange={set('cpf')} placeholder="000.000.000-00" />
+          <Input id="cpf" label="CPF" hint="Opcional, mas recomendado: facilita a emissão de contratos e documentos depois." value={form.cpf} onChange={set('cpf')} placeholder="000.000.000-00" />
           <div>
             <div className="flex items-end gap-2">
               <div className="flex-1">

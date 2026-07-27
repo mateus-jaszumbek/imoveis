@@ -116,7 +116,7 @@ export function DespesasImovel({ imovelId }: { imovelId: string }) {
 
       <Modal open={showModal} onClose={() => setShowModal(false)} title="Nova Despesa">
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Select id="categoria" label="Categoria *" options={CATEGORIAS} value={form.categoria} onChange={set('categoria')} required />
+          <Select id="categoria" label="Categoria *" hint="Classifica o gasto (ex: manutenção, IPTU, condomínio) para os relatórios e gráficos do módulo Financeiro." options={CATEGORIAS} value={form.categoria} onChange={set('categoria')} required />
           <Input id="data" label="Data *" type="date" value={form.data} onChange={set('data')} required />
           <Input id="valor" label="Valor (R$) *" type="text" inputMode="decimal" placeholder="350,00" value={form.valor} onChange={set('valor')} required />
           <Input id="descricao" label="Descrição" value={form.descricao} onChange={set('descricao')} placeholder="Ex: reparo hidráulico" />

@@ -1,21 +1,24 @@
 import { forwardRef } from 'react'
 import { cn } from '@/lib/utils'
 import { ChevronDown } from 'lucide-react'
+import { FieldHint } from '@/components/ui/field-hint'
 
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string
   error?: string
+  hint?: string
   options: { value: string; label: string }[]
   placeholder?: string
 }
 
 const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, label, error, id, options, placeholder, ...props }, ref) => {
+  ({ className, label, error, hint, id, options, placeholder, ...props }, ref) => {
     return (
       <div className="flex flex-col gap-1">
         {label && (
-          <label htmlFor={id} className="text-sm font-medium text-gray-700">
+          <label htmlFor={id} className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
             {label}
+            {hint && <FieldHint text={hint} />}
           </label>
         )}
         <div className="relative">

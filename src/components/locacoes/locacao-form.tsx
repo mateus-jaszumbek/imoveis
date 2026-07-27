@@ -82,15 +82,16 @@ export function LocacaoForm({ imoveis, inquilinos }: Props) {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input id="valor" label="Valor do Aluguel (R$) *" type="text" inputMode="decimal" placeholder="1500,00" value={form.valor} onChange={set('valor')} required />
-            <Select id="dia_vencimento" label="Dia de Vencimento *" options={diasOptions} value={form.dia_vencimento} onChange={set('dia_vencimento')} />
+            <Select id="dia_vencimento" label="Dia de Vencimento *" hint="Dia do mês em que o boleto do aluguel vence. Os próximos boletos são gerados automaticamente com base nesse dia." options={diasOptions} value={form.dia_vencimento} onChange={set('dia_vencimento')} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input id="seguro_corretora" label="Corretora de Seguro" value={form.seguro_corretora} onChange={set('seguro_corretora')} placeholder="Ex: Porto Seguro" />
+            <Input id="seguro_corretora" label="Corretora de Seguro" hint="Opcional, apenas para referência sua caso o contrato tenha seguro-fiança ou incêndio associado." value={form.seguro_corretora} onChange={set('seguro_corretora')} placeholder="Ex: Porto Seguro" />
             <Input id="seguro_apolice" label="Nº da Apólice" value={form.seguro_apolice} onChange={set('seguro_apolice')} />
           </div>
           <Select
             id="indice_reajuste"
             label="Índice de Reajuste"
+            hint="Índice usado para reajustar o valor do aluguel automaticamente na renovação do contrato, conforme a lei do inquilinato. Deixe em branco se não quiser reajuste automático."
             options={[
               { value: 'igpm', label: 'IGP-M' },
               { value: 'ipca', label: 'IPCA' },

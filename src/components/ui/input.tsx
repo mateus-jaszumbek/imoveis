@@ -1,18 +1,21 @@
 import { forwardRef } from 'react'
 import { cn } from '@/lib/utils'
+import { FieldHint } from '@/components/ui/field-hint'
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
   error?: string
+  hint?: string
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, id, ...props }, ref) => {
+  ({ className, label, error, hint, id, ...props }, ref) => {
     return (
       <div className="flex flex-col gap-1">
         {label && (
-          <label htmlFor={id} className="text-sm font-medium text-gray-700">
+          <label htmlFor={id} className="flex items-center gap-1.5 text-sm font-medium text-gray-700">
             {label}
+            {hint && <FieldHint text={hint} />}
           </label>
         )}
         <input

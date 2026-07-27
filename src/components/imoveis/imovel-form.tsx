@@ -100,7 +100,7 @@ export function ImovelForm({ imovel, onSuccess, proprietarios = [] }: ImovelForm
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Select id="tipo" label="Tipo *" options={tipoOptions} value={form.tipo} onChange={set('tipo')} />
-            <Input id="codigo" label="Código" value={form.codigo} onChange={set('codigo')} placeholder="Ex: AP-001" />
+            <Input id="codigo" label="Código" hint="Identificador interno seu, só para facilitar a busca (ex: AP-001). Não aparece para o inquilino." value={form.codigo} onChange={set('codigo')} placeholder="Ex: AP-001" />
           </div>
           <div>
             <Input id="cep" label="CEP" value={form.cep} onChange={set('cep')} onBlur={handleCepBlur} placeholder="00000-000" />
@@ -124,13 +124,13 @@ export function ImovelForm({ imovel, onSuccess, proprietarios = [] }: ImovelForm
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Input id="valor_aluguel" label="Aluguel (R$)" type="text" inputMode="decimal" placeholder="1500,00" value={form.valor_aluguel} onChange={set('valor_aluguel')} />
-            <Input id="valor_condominio" label="Condomínio (R$)" type="text" inputMode="decimal" placeholder="0,00" value={form.valor_condominio} onChange={set('valor_condominio')} />
-            <Input id="valor_iptu" label="IPTU (R$)" type="text" inputMode="decimal" placeholder="0,00" value={form.valor_iptu} onChange={set('valor_iptu')} />
+            <Input id="valor_condominio" label="Condomínio (R$)" hint="Valor de referência do condomínio, usado só para exibição e cálculos do financeiro — o condomínio em si não é cobrado no boleto do aluguel." type="text" inputMode="decimal" placeholder="0,00" value={form.valor_condominio} onChange={set('valor_condominio')} />
+            <Input id="valor_iptu" label="IPTU (R$)" hint="Valor de referência do IPTU, usado só para exibição e cálculos do financeiro — não é cobrado automaticamente no boleto do aluguel." type="text" inputMode="decimal" placeholder="0,00" value={form.valor_iptu} onChange={set('valor_iptu')} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Input id="quartos" label="Quartos" type="number" value={form.quartos} onChange={set('quartos')} />
             <Input id="area" label="Área (m²)" type="text" inputMode="decimal" placeholder="75,5" value={form.area} onChange={set('area')} />
-            <Select id="status" label="Status" options={statusOptions} value={form.status} onChange={set('status')} />
+            <Select id="status" label="Status" hint="Disponível: pode ser alugado. Alugado: já tem uma locação ativa (muda sozinho ao criar/encerrar uma locação). Manutenção: fora de uso temporariamente." options={statusOptions} value={form.status} onChange={set('status')} />
           </div>
           <Textarea id="descricao" label="Descrição" value={form.descricao} onChange={set('descricao')} rows={3} />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-lg border border-gray-200 p-4">

@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { SidebarAdmin } from '@/components/layout/sidebar-admin'
+import { OnboardingGate } from '@/components/onboarding/onboarding-gate'
 import { diasAte } from '@/lib/utils'
 import { Clock } from 'lucide-react'
 
@@ -17,7 +18,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   // produção (admin ↔ cliente ping-pong).
   const { data: profile } = await supabase
     .from('profiles')
-    .select('locadora_id')
+    .select('locadora_id, onboarding_completo')
     .eq('id', user.id)
     .single()
 
@@ -53,6 +54,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           {children}
         </div>
       </main>
+      <OnboardingGate completo={profile?.onboarding_completo ?? true} />
     </div>
   )
 }

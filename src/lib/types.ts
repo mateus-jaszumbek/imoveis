@@ -49,6 +49,7 @@ export type Database = {
           cpf: string | null
           role: 'admin' | 'cliente' | 'proprietario'
           consentimento_lgpd_em: string | null
+          onboarding_completo: boolean
           criado_em: string
           atualizado_em: string
         }
@@ -61,6 +62,7 @@ export type Database = {
           cpf?: string | null
           role: 'admin' | 'cliente' | 'proprietario'
           consentimento_lgpd_em?: string | null
+          onboarding_completo?: boolean
           criado_em?: string
           atualizado_em?: string
         }
@@ -73,6 +75,7 @@ export type Database = {
           cpf?: string | null
           role?: 'admin' | 'cliente'
           consentimento_lgpd_em?: string | null
+          onboarding_completo?: boolean
           criado_em?: string
           atualizado_em?: string
         }
