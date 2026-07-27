@@ -56,6 +56,11 @@ export const TOUR_STEPS: TourStep[] = [
   },
 ]
 
+export const SUPORTE = {
+  telefoneFormatado: '(41) 99536-5774',
+  whatsappUrl: 'https://wa.me/5541995365774',
+}
+
 export interface HelpSection {
   id: string
   title: string
